@@ -81,18 +81,35 @@ class Queue:
         return self.items[index]
 
 class CustomerQueue(Queue):
-    def check_queue_number(self,cust_id):
+    def check_queue_number(self,cust_id) ->int:
         for i in range(self.size()):
             if self.items[i].cust_id==cust_id:
                 return i
         return 0
 
-    def get_queue_time(self,cust:Customer):
+    def get_total_queue_time(self) -> float:
+        '''
+        Get total waiting time for the entire queue
+        :return:
+        '''
         total_queue_time=0
         for i in range(1,self.size()):
             temp_cust=self.items[i]
             total_queue_time+=temp_cust.get_order_time()+temp_cust.get_thinking_time()
         return total_queue_time
+
+    def get_queue_time(self, cust: Customer) ->float:
+        '''
+        Get waiting time for the customer
+        :param cust: customer object
+        :return:
+        '''
+        q_index = self.check_queue_number(cust.cust_id)
+        queue_time = 0
+        for i in range(q_index + 1,self.size()):
+            temp_cust = self.items[i]
+            queue_time += temp_cust.get_order_time() + temp_cust.get_thinking_time()
+        return queue_time
 
 class Chef:
     def __init__(self,is_experience=True):
