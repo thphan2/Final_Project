@@ -139,9 +139,11 @@ class Chef:
     def __init__(self,is_experience=True):
         self.is_experience=is_experience
         if self.is_experience:
-            self.s_prep_time=random.uniform(300,600)
+            #self.s_prep_time=random.uniform(300,600)
+            self.s_prep_time=NormalDist(450,5,300,600).random()
         else:
-            self.s_prep_time = random.uniform(450, 750)
+            #self.s_prep_time = random.uniform(450, 750)
+            self.s_prep_time = NormalDist(600, 5, 450, 700).random()
 
     def make_ic_alone_duration(self,s_ic_num,m_ic_num,l_ic_num):
         return self.s_prep_time*(s_ic_num+1.5*m_ic_num+2*l_ic_num)
