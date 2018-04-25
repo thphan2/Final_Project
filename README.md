@@ -1,5 +1,4 @@
-# Title:
-Ice-cream shop Monte Carlo Simulation
+# Title: Ice-cream shop Monte Carlo Simulation
 
 ## Team Member(s):
 Yuejun Wu, Thuong Phan
