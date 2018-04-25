@@ -39,6 +39,28 @@ class Customer:
     def get_serving_time(self):
         return self.order_time+self.thinking_time
 
+class RandomDist():
+    '''
+    RandomDist is a base abstract class to build a Random distribution.
+    This class contains an abstract method for building a random generator
+    Inherited class must implement this method
+    '''
+
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    def random(self):
+        """
+        This class is an abstract method for implementation class
+        should return a random value based on the configuration given in the implementation
+        :return:
+        """
+        pass
+
 class Queue:
     def __init__(self):
         self.items = []
