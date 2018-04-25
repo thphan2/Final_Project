@@ -9,7 +9,8 @@ class Customer:
         self.cust_id = cust_id
         self.cust_order = {'S':random.randint(0,5),'M':random.randint(0,5),'L':random.randint(0,5)}
         self.arrival_time = arrival_time
-        self.order_time=random.uniform(60,300)
+        #self.order_time=random.uniform(60,300)
+        self.order_time = NormalDist(120,5,60,300).random()
         self.thinking_time = random.uniform(0,120)
 
     def get_cust_id(self):
@@ -56,10 +57,36 @@ class RandomDist():
     def random(self):
         """
         This class is an abstract method for implementation class
-        should return a random value based on the configuration given in the implementation
+        should return a random value
         :return:
         """
         pass
+
+class NormalDist(RandomDist):
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random normal distribution parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        RandomDist.__init__(self, "Normal")
+        self._mu = mu
+        self._sigma = sigma
+        self._low = low
+        self._high = high
+
+    def random(self):
+        """
+        This will return a random gaussian generator by checking the low value and highest value
+        :return:
+        """
+        x = self._low - 1
+        while x < self._low or x > self._high:
+            x = random.gauss(self._mu, self._sigma)
+        return x
+
 
 class Queue:
     def __init__(self):
@@ -90,7 +117,6 @@ class CustomerQueue(Queue):
     def get_total_queue_time(self) -> float:
         '''
         Get total waiting time for the entire queue
-        :return:
         '''
         total_queue_time=0
         for i in range(1,self.size()):
@@ -101,8 +127,6 @@ class CustomerQueue(Queue):
     def get_queue_time(self, cust: Customer) ->float:
         '''
         Get waiting time for the customer
-        :param cust: customer object
-        :return:
         '''
         q_index = self.check_queue_number(cust.cust_id)
         queue_time = 0
