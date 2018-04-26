@@ -155,7 +155,7 @@ class CustomerQueue(Queue):
             queue_time += temp_cust.get_order_time() + temp_cust.get_thinking_time()
         return queue_time
 
-class Chef:
+class Employee:
     def __init__(self,is_experience=True):
         self.is_experience=is_experience
         if self.is_experience:
@@ -169,7 +169,7 @@ class Chef:
         return self.s_prep_time*(s_ic_num+1.5*m_ic_num+2*l_ic_num)
 
 class IceCreamShop:
-    __chef_list=[]
+    __employee_list=[]
     def __init__(self):
         self.exp_chef_num=random.randint(1,2)
         self.new_chef_num=random.randint(0,2)
@@ -177,9 +177,9 @@ class IceCreamShop:
         self.current_cust=None
         self.remainingtime=0
         for i in range(self.exp_chef_num):
-            IceCreamShop.__chef_list.append(Chef())
+            IceCreamShop.__employee_list.append(Employee())
         for i in range(self.new_chef_num):
-            IceCreamShop.__chef_list.append(Chef(is_experience=False))
+            IceCreamShop.__employee_list.append(Employee(is_experience=False))
 
     def is_serving(self):
         if self.current_cust!=None:
@@ -193,7 +193,7 @@ class IceCreamShop:
         self.remainingtime=next_cust.get_serving_time()
 
     def servingtime_tick(self):
-        if self.current_cust!=None:
+        if self.is_serving():
             self.remainingtime=self.remainingtime-1
             if self.remainingtime<=0:
                 print("*** Customer %s completed ordering." %(self.current_cust.cust_id))
@@ -202,19 +202,19 @@ class IceCreamShop:
 
     def make_ic_together_duration(self,cust:Customer):
         prepare_time_list=[]
-        if len(IceCreamShop.__chef_list)==1:
-            return IceCreamShop.__chef_list[0].make_ic_alone_duration(cust.s_icecream_num(),cust.m_icecream_num(),cust.l_icecream_num())
+        if len(IceCreamShop.__employee_list)==1:
+            return IceCreamShop.__employee_list[0].make_ic_alone_duration(cust.s_icecream_num(),cust.m_icecream_num(),cust.l_icecream_num())
         else:
             #[3,3,2,2]
             #[Chef1, Chef2, Chef3, Chef4]
             #{S:3,M:5,L:2}
             task_list=self.split_order(cust)
             ic_num_list=[cust.l_icecream_num(),cust.m_icecream_num(),cust.s_icecream_num()]
-            for i in range(len(IceCreamShop.__chef_list)):
+            for i in range(len(IceCreamShop.__employee_list)):
                 temp_cust_order=[0,0,0]
                 self.match_ic_to_chef(ic_num_list,task_list,temp_cust_order,i,0)
                 print(temp_cust_order)
-                prepare_time_list.append(IceCreamShop.__chef_list[i].make_ic_alone_duration(temp_cust_order[2],temp_cust_order[1],temp_cust_order[0]))
+                prepare_time_list.append(IceCreamShop.__employee_list[i].make_ic_alone_duration(temp_cust_order[2],temp_cust_order[1],temp_cust_order[0]))
         return prepare_time_list
 
     def match_ic_to_chef(self,ic_num_list,task_list,temp_cust_order,i,j):
@@ -231,9 +231,9 @@ class IceCreamShop:
 
 
     def split_order(self,cust:Customer):
-        task_list=[cust.get_total_icecream()//len(IceCreamShop.__chef_list)]*len(IceCreamShop.__chef_list)
-        remainder=cust.get_total_icecream()%len(IceCreamShop.__chef_list)
-        remainder_list=[1]*remainder+[0]*(len(IceCreamShop.__chef_list)-remainder)
+        task_list=[cust.get_total_icecream()//len(IceCreamShop.__employee_list)]*len(IceCreamShop.__employee_list)
+        remainder=cust.get_total_icecream()%len(IceCreamShop.__employee_list)
+        remainder_list=[1]*remainder+[0]*(len(IceCreamShop.__employee_list)-remainder)
         return [sum(x) for x in zip(task_list,remainder_list)]
 
 
