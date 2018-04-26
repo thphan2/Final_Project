@@ -7,12 +7,8 @@ class Customer:
     #cust_order:dict {'small':1, 'medium':2 'large':1}
     def __init__(self, cust_id, arrival_time):
         self.cust_id = cust_id
-
-        #self.cust_order = {'S':random.randint(0,5),'M':random.randint(0,5),'L':random.randint(0,5)}
         self.cust_order = {'S': random.randint(0, 5), 'M': random.randint(0, 5), 'L':GaussianDiscrete(2,1,0,5).random()}
-
         self.arrival_time = arrival_time
-        #self.order_time=random.uniform(60,300)
         self.order_time = NormalDist(120,3,60,300).random()
         self.thinking_time = random.uniform(0,120)
 
@@ -164,10 +160,10 @@ class Employee:
         self.is_experience=is_experience
         if self.is_experience:
             #self.s_prep_time=random.uniform(300,600)
-            self.s_prep_time=NormalDist(450,5,300,600).random()
+            self.s_prep_time=NormalDist(120,5,100,200).random()
         else:
             #self.s_prep_time = random.uniform(450, 750)
-            self.s_prep_time = NormalDist(600, 5, 450, 700).random()
+            self.s_prep_time = NormalDist(200, 5, 150, 400).random()
 
     def make_ic_duration(self,icecream:list):
         if icecream[2]=='L':
