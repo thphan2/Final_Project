@@ -21,7 +21,8 @@ Employee: Preparation time based on various levels of experience (normal distrib
 NULL Hypothesis: Total waiting time has no association with the experience of employees or the number of ice-cream customers buy
 
 
-## Analytical Summary of your findings: (e.g. Did you adjust the scenario based on previous simulation outcomes?  What are the management decisions one could make from your simulation's output, etc.)
+## Analytical Summary of your findings:
+(e.g. Did you adjust the scenario based on previous simulation outcomes?  What are the management decisions one could make from your simulation's output, etc.)
 
 ## Instructions on how to use the program:
 Run icshop_simulation.py
