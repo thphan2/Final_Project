@@ -7,10 +7,11 @@ class Customer:
     #cust_order:dict {'small':1, 'medium':2 'large':1}
     def __init__(self, cust_id, arrival_time):
         self.cust_id = cust_id
-        self.cust_order = {'S':random.randint(0,5),'M':random.randint(0,5),'L':random.randint(0,5)}
+        #self.cust_order = {'S':random.randint(0,5),'M':random.randint(0,5),'L':random.randint(0,5)}
+        self.cust_order = {'S': random.randint(0, 5), 'M': random.randint(0, 5), 'L':GaussianDiscrete(2,1,0,5).random()}
         self.arrival_time = arrival_time
         #self.order_time=random.uniform(60,300)
-        self.order_time = NormalDist(120,5,60,300).random()
+        self.order_time = NormalDist(120,3,60,300).random()
         self.thinking_time = random.uniform(0,120)
 
     def get_cust_id(self):
@@ -82,11 +83,30 @@ class NormalDist(RandomDist):
         This will return a random gaussian generator by checking the low value and highest value
         :return:
         """
-        x = self._low - 1
-        while x < self._low or x > self._high:
+        while True:
             x = random.gauss(self._mu, self._sigma)
-        return x
+            if x >= self._low or x <= self._high:
+                return x
 
+class GaussianDiscrete(NormalDist):
+    """
+    A random Gaussian Discrete generator
+    This will include all the feature that gaussian has but will return a discrete value using round
+    """
+
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random gaussian parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        NormalDist.__init__(self, mu, sigma, low, high)
+        RandomDist.__init__(self, "GaussianDiscrete")
+
+    def random(self):
+        return round(NormalDist.random(self))
 
 class Queue:
     def __init__(self):
