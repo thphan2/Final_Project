@@ -130,7 +130,7 @@ class Queue:
         return self.items[index]
 
 
-class CustomerQueue(Queue):
+class OrderingQueue(Queue):
     def check_queue_number(self,cust_id) ->int:
 
         for i in range(self.size()):
@@ -226,7 +226,7 @@ class IceCreamShop:
 
     def start_nexticecream(self, next_ic: list):
         self.current_ic = next_ic
-        self.ic_remainingtime = IceCreamShop.__chef_list[0].make_ic_duration(next_ic)
+        self.ic_remainingtime = IceCreamShop.__employee_list[0].make_ic_duration(next_ic)
 
     def ic_preparingtime_tick(self):
         if self.current_ic!=None:
