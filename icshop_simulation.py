@@ -7,9 +7,13 @@ class Customer:
     #cust_order:dict {'small':1, 'medium':2 'large':1}
     def __init__(self, cust_id, arrival_time):
         self.cust_id = cust_id
-        self.cust_order = {'S':random.randint(0,3),'M':random.randint(0,3),'L':random.randint(0,3)}
+
+        #self.cust_order = {'S':random.randint(0,5),'M':random.randint(0,5),'L':random.randint(0,5)}
+        self.cust_order = {'S': random.randint(0, 5), 'M': random.randint(0, 5), 'L':GaussianDiscrete(2,1,0,5).random()}
+
         self.arrival_time = arrival_time
-        self.order_time=random.uniform(60,300)
+        #self.order_time=random.uniform(60,300)
+        self.order_time = NormalDist(120,3,60,300).random()
         self.thinking_time = random.uniform(0,120)
 
     def get_cust_id(self):
@@ -39,6 +43,73 @@ class Customer:
     def get_serving_time(self):
         return self.order_time+self.thinking_time
 
+class RandomDist():
+    '''
+    RandomDist is a base abstract class to build a Random distribution.
+    This class contains an abstract method for building a random generator
+    Inherited class must implement this method
+    '''
+
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    def random(self):
+        """
+        This class is an abstract method for implementation class
+        should return a random value
+        :return:
+        """
+        pass
+
+class NormalDist(RandomDist):
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random normal distribution parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        RandomDist.__init__(self, "Normal")
+        self._mu = mu
+        self._sigma = sigma
+        self._low = low
+        self._high = high
+
+    def random(self):
+        """
+        This will return a random gaussian generator by checking the low value and highest value
+        :return:
+        """
+        while True:
+            x = random.gauss(self._mu, self._sigma)
+            if x >= self._low or x <= self._high:
+                return x
+
+class GaussianDiscrete(NormalDist):
+    """
+    A random Gaussian Discrete generator
+    This will include all the feature that gaussian has but will return a discrete value using round
+    """
+
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random gaussian parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        NormalDist.__init__(self, mu, sigma, low, high)
+        RandomDist.__init__(self, "GaussianDiscrete")
+
+    def random(self):
+        return round(NormalDist.random(self))
+
 class Queue:
     def __init__(self):
         self.items = []
@@ -58,27 +129,45 @@ class Queue:
     def getItem(self,index):
         return self.items[index]
 
-class OrderingQueue(Queue):
-    def check_queue_number(self,cust_id):
+
+class CustomerQueue(Queue):
+    def check_queue_number(self,cust_id) ->int:
+
         for i in range(self.size()):
             if self.items[i].cust_id==cust_id:
                 return i
         return 0
 
-    def get_queue_time(self,cust:Customer):
+    def get_total_queue_time(self) -> float:
+        '''
+        Get total waiting time for the entire queue
+        '''
         total_queue_time=0
         for i in range(1,self.size()):
             temp_cust=self.items[i]
             total_queue_time+=temp_cust.get_order_time()+temp_cust.get_thinking_time()
         return total_queue_time
 
-class Chef:
+    def get_queue_time(self, cust: Customer) ->float:
+        '''
+        Get waiting time for the customer
+        '''
+        q_index = self.check_queue_number(cust.cust_id)
+        queue_time = 0
+        for i in range(q_index + 1,self.size()):
+            temp_cust = self.items[i]
+            queue_time += temp_cust.get_order_time() + temp_cust.get_thinking_time()
+        return queue_time
+
+class Employee:
     def __init__(self,is_experience=True):
         self.is_experience=is_experience
         if self.is_experience:
-            self.s_prep_time=random.uniform(300,600)
+            #self.s_prep_time=random.uniform(300,600)
+            self.s_prep_time=NormalDist(450,5,300,600).random()
         else:
-            self.s_prep_time = random.uniform(450, 750)
+            #self.s_prep_time = random.uniform(450, 750)
+            self.s_prep_time = NormalDist(600, 5, 450, 700).random()
 
     def make_ic_duration(self,icecream:list):
         if icecream[2]=='L':
@@ -93,7 +182,7 @@ class Chef:
         return self.s_prep_time*(s_ic_num+1.5*m_ic_num+2*l_ic_num)
 
 class IceCreamShop:
-    __chef_list=[]
+    __employee_list=[]
     def __init__(self):
         self.exp_chef_num=random.randint(1,2)
         self.new_chef_num=random.randint(0,2)
@@ -105,9 +194,9 @@ class IceCreamShop:
         self.ic_remainingtime=0
         self.complete_icecream=0
         for i in range(self.exp_chef_num):
-            IceCreamShop.__chef_list.append(Chef())
+            IceCreamShop.__employee_list.append(Employee())
         for i in range(self.new_chef_num):
-            IceCreamShop.__chef_list.append(Chef(is_experience=False))
+            IceCreamShop.__employee_list.append(Employee(is_experience=False))
 
     def is_serving(self):
         if self.current_cust!=None:
@@ -121,7 +210,7 @@ class IceCreamShop:
         self.remainingtime=next_cust.get_serving_time()
 
     def servingtime_tick(self,current_second):
-        if self.current_cust!=None:
+        if self.is_serving():
             self.remainingtime=self.remainingtime-1
             if self.remainingtime<=0:
                 print("*** %s: Customer %s completed ordering." %(time.strftime('%H:%M:%S', time.gmtime(36000+current_second)),self.current_cust.cust_id))
@@ -154,19 +243,19 @@ class IceCreamShop:
     #not using
     def make_ic_together_duration(self,cust:Customer):
         prepare_time_list=[]
-        if len(IceCreamShop.__chef_list)==1:
-            return IceCreamShop.__chef_list[0].make_ic_alone_duration(cust.s_icecream_num(),cust.m_icecream_num(),cust.l_icecream_num())
+        if len(IceCreamShop.__employee_list)==1:
+            return IceCreamShop.__employee_list[0].make_ic_alone_duration(cust.s_icecream_num(),cust.m_icecream_num(),cust.l_icecream_num())
         else:
             #[3,3,2,2]
             #[Chef1, Chef2, Chef3, Chef4]
             #{S:3,M:5,L:2}
             task_list=self.split_order(cust)
             ic_num_list=[cust.l_icecream_num(),cust.m_icecream_num(),cust.s_icecream_num()]
-            for i in range(len(IceCreamShop.__chef_list)):
+            for i in range(len(IceCreamShop.__employee_list)):
                 temp_cust_order=[0,0,0]
                 self.match_ic_to_chef(ic_num_list,task_list,temp_cust_order,i,0)
                 print(temp_cust_order)
-                prepare_time_list.append(IceCreamShop.__chef_list[i].make_ic_alone_duration(temp_cust_order[2],temp_cust_order[1],temp_cust_order[0]))
+                prepare_time_list.append(IceCreamShop.__employee_list[i].make_ic_alone_duration(temp_cust_order[2],temp_cust_order[1],temp_cust_order[0]))
         return prepare_time_list
 
     #not using
@@ -184,9 +273,9 @@ class IceCreamShop:
 
 
     def split_order(self,cust:Customer):
-        task_list=[cust.get_total_icecream()//len(IceCreamShop.__chef_list)]*len(IceCreamShop.__chef_list)
-        remainder=cust.get_total_icecream()%len(IceCreamShop.__chef_list)
-        remainder_list=[1]*remainder+[0]*(len(IceCreamShop.__chef_list)-remainder)
+        task_list=[cust.get_total_icecream()//len(IceCreamShop.__employee_list)]*len(IceCreamShop.__employee_list)
+        remainder=cust.get_total_icecream()%len(IceCreamShop.__employee_list)
+        remainder_list=[1]*remainder+[0]*(len(IceCreamShop.__employee_list)-remainder)
         return [sum(x) for x in zip(task_list,remainder_list)]
 
 
