@@ -3,11 +3,8 @@ import time
 from collections import Counter
 import numpy as np
 
-#preparation time=#S_icecream*prepartion_time+#M_icecream*preparation_time*1.5+#L_icecream*preparation_time*2
-#queue time=sum(order_time(random)+thinking_time(random) for previous customers)
-
 class Customer:
-    #cust_order:dict {'small':1, 'medium':2 'large':1}
+    # cust_order example: {'S':1, 'M':2 'L':1}
     def __init__(self, cust_id, arrival_time):
         self.cust_id = cust_id
         self.cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
@@ -59,13 +56,6 @@ class Cashier:
         else:
             self._salary = 10  #$10/hr
             self._process_time = NormalDist(5,1,2,15).random()
-        self.customer = None
-
-    def busy(self):
-        if self.customer != None:
-            return True
-        else:
-            return False
 
     def get_process_time(self):
         return self._process_time
@@ -83,13 +73,6 @@ class Chef:
         else:
             self._salary = 14  #$14/hr
             self._prep_time = NormalDist(200, 5, 150, 400).random()
-        self.order = None
-
-    def busy(self):
-        if self.order != None:
-            return True
-        else:
-            return False
 
     def get_salary(self):
         return self._salary
@@ -107,7 +90,7 @@ class Ice_creamShop:
     total_sec = 39600
     def __init__(self):
         exp_chef_num = random.randint(1, 6)
-        new_chef_num = random.randint(0, 6)
+        new_chef_num = random.randint(1, 6)
         exp_cashier_num = random.randint(1, 5)
         new_cashier_num = random.randint(0, 5)
 
@@ -155,6 +138,7 @@ class Ordering():
     def startNext(self, new_customer:Customer, order_start_time):
         self.curr_customer = new_customer
         self.order_indiv = self.curr_customer.order_list()
+        # total number of ice-cream the customer orders
         self.order_stats = [(self.curr_customer.get_cust_id(), len(self.curr_customer.order_list()))]
         self.time_remaining = new_customer.get_serving_time() + self.cashier.get_process_time()
         self.order_complete_time = order_start_time + self.time_remaining
@@ -194,8 +178,8 @@ def simulation(budget):
         cust_id = 0
         waitingtimes = []
         order_q = Queue()
-        customer_num_ic = {}  #total number of ice-cream for each customer
         prep_q = Queue()
+        customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
         if icshop.total_variable_cost() < budget:
             print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
 
@@ -247,13 +231,11 @@ def simulation(budget):
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
                 if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
-                    print("%s: All orders completed. \n Icecream Shop closes for the day. See you again!" %seconds_to_hhmmss(currentSecond))
+                    print("%s: All orders completed. \nIcecream Shop closes for the day. See you again!" %seconds_to_hhmmss(currentSecond))
                     break
             break
         else:
             print("Budget is not enough. Please adjust employee numbers.\n")
-            # still orders remain in prep_q
-            #if not prep_q.isEmpty():
 
 
 # More customers come from 12pm - 3pm
@@ -367,5 +349,4 @@ def seconds_to_mmss(second_number):
 
 
 if __name__ == '__main__':
-    #icshop_simulation(10000)
     simulation(1000)
