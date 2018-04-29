@@ -2,6 +2,7 @@ import random
 import time
 from collections import Counter
 import numpy as np
+import sys
 
 class Customer:
     # cust_order example: {'S':1, 'M':2 'L':1}
@@ -98,11 +99,12 @@ class Ice_creamShop:
         for i in range(exp_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=True))
         for i in range(new_chef_num):
-            self.chef_list.append(Chef(i+1,is_experienced=False))
+            #self.chef_list.append(Chef(i+1,is_experienced=False))
+            self.chef_list.append(Chef(exp_chef_num+i+1, is_experienced=False))
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=True))
         for i in range(new_cashier_num):
-            self.cashier_list.append(Cashier(i+1,is_experienced=False))
+            self.cashier_list.append(Cashier(exp_cashier_num+i+1,is_experienced=False))
         print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
               %(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num))
 
@@ -190,7 +192,8 @@ def simulation(budget):
             for chef in icshop.chef_list:
                 prepare_lis.append(Preparing(chef))
 
-            for currentSecond in range(Ice_creamShop.total_sec+100000):
+            for currentSecond in range(sys.maxsize):
+                # shop stops taking new order at 8:45pm
                 if currentSecond<Ice_creamShop.total_sec-900:
                     if new_customer(currentSecond):
                         customer = Customer(cust_id + 1, currentSecond)
