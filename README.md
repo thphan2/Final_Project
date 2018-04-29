@@ -14,7 +14,9 @@ Ice-cream: Number of ice-cream for each type ordered by customers (uniform distr
 Customer: Ordering time (normal distribution)
 Customer: Thinking time (uniform distribution)
 Customer: Number of customers comes to the shop in different time during a day (normal distribution)
-Employee: Preparation time based on various levels of experience (normal distribution)
+Chef: Preparation time based on various levels of experience (normal distribution)
+Cashier: Preparation time based on various levels of experience (normal distribution)
+Customer coming interval: uniform distribution based on different range of time in a day
 
 
 ## Hypothesis or hypotheses before running the simulation:
@@ -28,4 +30,7 @@ NULL Hypothesis: Total waiting time has no association with the experience of em
 Run icshop_simulation.py
 
 ## All Sources Used:
+Miller & Ranum: Problem Solving with Algorithms and Data Structures Using Python, Section 3.4, pages 106-119
+https://github.com/nikolausn/Final-project
+
 
