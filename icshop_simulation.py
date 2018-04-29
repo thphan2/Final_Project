@@ -101,10 +101,10 @@ class Ice_creamShop:
     # shop opens from 10AM - 9PM (11 hours) 11hours = 39600 sec
     total_sec = 39600
     def __init__(self):
-        exp_chef_num = random.randint(1, 2)
-        new_chef_num = random.randint(0, 2)
-        exp_cashier_num = random.randint(1, 2)
-        new_cashier_num = random.randint(0, 1)
+        exp_chef_num = random.randint(1, 6)
+        new_chef_num = random.randint(0, 6)
+        exp_cashier_num = random.randint(1, 5)
+        new_cashier_num = random.randint(0, 5)
 
         self.chef_list, self.cashier_list = [],[]
         for i in range(exp_chef_num):
@@ -235,6 +235,11 @@ def simulation(budget):
                         Preparing.count_ic_order[preparing.cust_id] = 0
                         preparing.finish_ic_order = False
             break
+        else:
+            print("Budget is not enough. Please adjust employee numbers.\n")
+            # still orders remain in prep_q
+            #if not prep_q.isEmpty():
+
 
 # More customers come from 12pm - 3pm
 def new_customer(currentSecond):
