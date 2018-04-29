@@ -202,7 +202,7 @@ def simulation(budget):
                 prepare_lis.append(Preparing(chef))
 
             for currentSecond in range(Ice_creamShop.total_sec):
-                if new_customer():
+                if new_customer(currentSecond):
                     customer = Customer(cust_id + 1, currentSecond)
                     cust_id += 1
                     order_q.enqueue(customer)
@@ -236,12 +236,20 @@ def simulation(budget):
                         preparing.finish_ic_order = False
             break
 
-def new_customer():
-    num = random.randrange(1,2000)  #need modification for peak/non-peak hour
-    if num == 198:
-        return True
+# More customers come from 12pm - 3pm
+def new_customer(currentSecond):
+    if 7200 < currentSecond < 18000:
+        num = random.randrange(1,240) #peak-hour: customer/240 sec on average
+        if num == 100:
+            return True
+        else:
+            return False
     else:
-        return False
+        num = random.randrange(1,900) #non-peak hour: customer/900 sec on average
+        if num == 800:
+            return True
+        else:
+            return False
 
 class RandomDist():
     '''
