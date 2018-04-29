@@ -215,7 +215,8 @@ def simulation(budget):
                                           % (seconds_to_hhmmss(currentSecond),next_customer.cust_id, next_customer.s_icecream_num(), next_customer.m_icecream_num(),
                                              next_customer.l_icecream_num()))
                         ordering.startNext(next_customer, currentSecond)
-                    ordering.tick()
+                    else:
+                        ordering.tick()
                     if ordering.finishOrder:
                         customer_num_ic[ordering.order_stats[0][0]] = ordering.order_stats[0][1]
                         ordering.finishOrder = False
@@ -226,7 +227,8 @@ def simulation(budget):
                     if (not preparing.busy()) and (not prep_q.isEmpty()):
                         next_ic_order = prep_q.dequeue()
                         preparing.startNext(next_ic_order,currentSecond)
-                    preparing.tick()
+                    else:
+                        preparing.tick()
                     if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
                         print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
                         seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
