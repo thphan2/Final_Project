@@ -106,19 +106,18 @@ class Ice_creamShop:
     # shop opens from 10AM - 9PM (11 hours) 11hours = 39600 sec
     total_sec = 39600
     def __init__(self):
-        exp_chef_num = random.randint(1, 6)
-        new_chef_num = random.randint(0, 6)
-        exp_cashier_num = random.randint(1, 5)
-        new_cashier_num = random.randint(0, 5)
-
+        exp_chef_num = random.randint(1, 3)
+        new_chef_num = random.randint(0, 3)
+        exp_cashier_num = random.randint(1, 2)
+        new_cashier_num = random.randint(0, 1)
         self.chef_list, self.cashier_list = [],[]
         for i in range(exp_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=True))
-        for i in range(new_chef_num):
+        for i in range(exp_chef_num,exp_chef_num+new_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=False))
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=True))
-        for i in range(new_cashier_num):
+        for i in range(exp_cashier_num,exp_cashier_num+new_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=False))
         print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
               %(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num))
@@ -130,6 +129,17 @@ class Ice_creamShop:
         for cashier in self.cashier_list:
             cashier_cost += cashier.get_salary()
         return (chef_cost + cashier_cost)*(Ice_creamShop.total_sec/3600)
+
+    def is_within_budget(self,budget):
+        if Ice_creamShop.total_variable_cost()<=budget:
+            return True
+        return False
+
+    def find_emp_combination(self,budget,exp_chef_sal,new_chef_sal,exp_cash_sal,new_cash_sal):
+        onehour_budget=budget/Ice_creamShop.total_sec*3600
+
+        max_chefs=int(onehour_budget-exp_chef_sal-exp_cash_sal/new_chef_sal)
+        max_cashiers=int(onehour_budget-exp_chef_sal-exp_cash_sal/new_cash_sal)
 
 class Ordering():
     def __init__(self, cashier: Cashier):
