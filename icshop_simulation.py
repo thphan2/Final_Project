@@ -105,7 +105,7 @@ class Ice_creamShop:
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=True))
         for i in range(new_cashier_num):
-            self.cashier_list.append(Cashier(exp_cashier_num+i+1,is_experienced=False)
+            self.cashier_list.append(Cashier(exp_cashier_num+i+1,is_experienced=False))
          
         print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
               %(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num))
