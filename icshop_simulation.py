@@ -1,7 +1,6 @@
 import random
 import time
 from collections import Counter
-import numpy as np
 import sys
 
 class Customer:
@@ -47,10 +46,15 @@ class Customer:
                 order_list.append((self.cust_id,size,self.get_arrivaltime()))
         return order_list
 
-class Cashier:
+class Employee:
+    # abstract class for all kinds of employee
     def __init__(self, id, is_experienced:bool):
-        self.id=id
+        self.id = id
         self.is_experienced = is_experienced
+
+class Cashier(Employee):
+    def __init__(self, id, is_experienced:bool):
+        Employee.__init__(self,id,is_experienced)
         if is_experienced:
             self._salary = 12  #$12/hr
             self._process_time = 0
@@ -64,10 +68,9 @@ class Cashier:
     def get_salary(self):
         return self._salary
 
-class Chef:
+class Chef(Employee):
     def __init__(self, id, is_experienced:bool):
-        self.id=id
-        self.is_experienced=is_experienced
+        Employee.__init__(self,id, is_experienced)
         if is_experienced:
             self._salary = 17  #$17/hr
             self._prep_time = NormalDist(60,5,30,90).random()
@@ -222,8 +225,8 @@ def simulation(budget):
                                           % (seconds_to_hhmmss(currentSecond),ordering.cashier.id,ordering.cashier.is_experienced,next_customer.cust_id, next_customer.s_icecream_num(), next_customer.m_icecream_num(),
                                              next_customer.l_icecream_num()))
                         ordering.startNext(next_customer, currentSecond)
-                    #else:
-                    ordering.tick()
+                    else:
+                        ordering.tick()
                     if ordering.finishOrder:
                         customer_num_ic[ordering.order_stats[0]] = ordering.order_stats[1]
                         ordering.finishOrder = False
@@ -237,8 +240,8 @@ def simulation(budget):
                             ">>> %s: Chef ID %s (is_experienced=%s) is preparing icecream order for customer %s."
                             % (seconds_to_hhmmss(currentSecond), preparing.chef.id, preparing.chef.is_experienced,next_ic_order[:-1] ))
                         preparing.startNext(next_ic_order,currentSecond)
-                    #else:
-                    preparing.tick()
+                    else:
+                        preparing.tick()
                     if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
                         print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
                         seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
