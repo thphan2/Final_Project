@@ -6,44 +6,47 @@ import sys
 class Customer:
     # cust_order example: {'S':1, 'M':2 'L':1}
     def __init__(self, cust_id, arrival_time):
-        self.cust_id = cust_id
-        self.cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
-        self.arrival_time = arrival_time
-        self.order_time = NormalDist(120,3,60,300).random()
-        self.thinking_time = random.uniform(0,120)
+        self._cust_id = cust_id
+        self._cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
+        self._arrival_time = arrival_time
+        self._order_time = NormalDist(120,3,60,300).random()
+        self._thinking_time = random.uniform(0,120)
+        self.price_S = 4
+        self.price_M = 6
+        self.price_L = 8
 
     def get_cust_id(self):
-        return self.cust_id
+        return self._cust_id
 
     def get_total_icecream(self):
         return self.s_icecream_num()+self.m_icecream_num()+self.l_icecream_num()
 
     def s_icecream_num(self):
-        return self.cust_order['S']
+        return self._cust_order['S']
 
     def m_icecream_num(self):
-        return self.cust_order['M']
+        return self._cust_order['M']
 
     def l_icecream_num(self):
-        return self.cust_order['L']
+        return self._cust_order['L']
 
     def get_arrivaltime(self):
-        return self.arrival_time
+        return self._arrival_time
 
     def get_order_time(self):
-        return self.order_time
+        return self._order_time
 
     def get_thinking_time(self):
-        return self.thinking_time
+        return self._thinking_time
 
     def get_serving_time(self):
-        return self.order_time+self.thinking_time
+        return self._order_time+self._thinking_time
 
     def order_list(self):
         order_list = []
-        for size in self.cust_order:
-            for num in range(self.cust_order[size]):
-                order_list.append((self.cust_id,size,self.get_arrivaltime()))
+        for size in self._cust_order:
+            for num in range(self._cust_order[size]):
+                order_list.append((self._cust_id,size,self.get_arrivaltime()))
         return order_list
 
 class Employee:
@@ -110,7 +113,6 @@ class Ice_creamShop:
         for i in range(exp_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=True))
         for i in range(new_chef_num):
-            #self.chef_list.append(Chef(i+1,is_experienced=False))
             self.chef_list.append(Chef(exp_chef_num+i+1, is_experienced=False))
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=True))
@@ -129,7 +131,7 @@ class Ice_creamShop:
         return (chef_cost + cashier_cost)*(Ice_creamShop.total_sec/3600)
 
     def is_within_budget(self,budget):
-        if Ice_creamShop.total_variable_cost()<=budget:
+        if Ice_creamShop.total_variable_cost(self)<=budget:
             return True
         return False
 
@@ -229,7 +231,7 @@ def simulation(budget):
                     if (not ordering.busy()) and (not order_q.isEmpty()):
                         next_customer = order_q.dequeue()
                         print(">>> %s: Cashier ID %s (is_experienced=%s) starts serving customer %s. Order: %s size S icecream, %s size M icecream and %s size L icecream"
-                                          % (seconds_to_hhmmss(currentSecond),ordering.cashier.id,ordering.cashier.is_experienced,next_customer.cust_id, next_customer.s_icecream_num(), next_customer.m_icecream_num(),
+                                          % (seconds_to_hhmmss(currentSecond),ordering.cashier.id,ordering.cashier.is_experienced,next_customer.get_cust_id(), next_customer.s_icecream_num(), next_customer.m_icecream_num(),
                                              next_customer.l_icecream_num()))
                         ordering.startNext(next_customer, currentSecond)
                     else:
@@ -282,6 +284,7 @@ def new_customer(currentSecond):
             return True
         else:
             return False
+
 
 class RandomDist():
     '''
