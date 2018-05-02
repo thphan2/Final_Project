@@ -223,7 +223,6 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
         cust_id = 0
         revenue=0
         ordering_waitingtimes=[]
-        preparing_waitingtimes=[]
         waitingtimes = []
         order_q = Queue()
         prep_q = Queue()
