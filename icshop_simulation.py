@@ -6,50 +6,60 @@ import sys
 class Customer:
     # cust_order example: {'S':1, 'M':2 'L':1}
     def __init__(self, cust_id, arrival_time):
-        self.cust_id = cust_id
-        self.cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
-        self.arrival_time = arrival_time
-        self.order_time = NormalDist(120,3,60,300).random()
-        self.thinking_time = random.uniform(0,120)
+        self._cust_id = cust_id
+        self._cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
+        self._arrival_time = arrival_time
+        self._order_time = NormalDist(120,3,60,300).random()
+        self._thinking_time = random.uniform(0,120)
 
     def get_cust_id(self):
-        return self.cust_id
+        return self._cust_id
 
     def get_total_icecream(self):
         return self.s_icecream_num()+self.m_icecream_num()+self.l_icecream_num()
 
     def s_icecream_num(self):
-        return self.cust_order['S']
+        return self._cust_order['S']
 
     def m_icecream_num(self):
-        return self.cust_order['M']
+        return self._cust_order['M']
 
     def l_icecream_num(self):
-        return self.cust_order['L']
+        return self._cust_order['L']
 
     def get_arrivaltime(self):
-        return self.arrival_time
+        return self._arrival_time
 
     def get_order_time(self):
-        return self.order_time
+        return self._order_time
 
     def get_thinking_time(self):
-        return self.thinking_time
+        return self._thinking_time
 
     def get_serving_time(self):
-        return self.order_time+self.thinking_time
+        return self._order_time+self._thinking_time
 
     def order_list(self):
         order_list = []
-        for size in self.cust_order:
-            for num in range(self.cust_order[size]):
-                order_list.append((self.cust_id,size,self.get_arrivaltime()))
+        for size in self._cust_order:
+            for num in range(self._cust_order[size]):
+                order_list.append((self._cust_id,size,self.get_arrivaltime()))
         return order_list
 
-class Cashier:
+class Employee:
+    # base class for all kinds of employee
     def __init__(self, id, is_experienced:bool):
-        self.id=id
+        self.id = id
         self.is_experienced = is_experienced
+
+    def get_salary(self):
+        pass
+
+class Cashier(Employee):
+    def __init__(self, id, is_experienced:bool):
+        # self.id = id
+        # self.is_experienced = is_experienced
+        Employee.__init__(self,id,is_experienced)
         if is_experienced:
             self._salary = 12  #$12/hr
             self._process_time = 0
@@ -63,10 +73,11 @@ class Cashier:
     def get_salary(self):
         return self._salary
 
-class Chef:
+class Chef(Employee):
     def __init__(self, id, is_experienced:bool):
-        self.id=id
-        self.is_experienced=is_experienced
+        # self.id = id
+        # self.is_experienced = is_experienced
+        Employee.__init__(self, id, is_experienced)
         if is_experienced:
             self._salary = 17  #$17/hr
             self._prep_time = NormalDist(60,5,30,90).random()
@@ -99,7 +110,11 @@ class Ice_creamShop:
     # shop opens from 12PM - 10PM (10 hours) 11hours = 36000 sec
     total_sec = 36000
     def __init__(self,exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
+        self.price_S = 4
+        self.price_M = 6
+        self.price_L = 8
         self.chef_list, self.cashier_list = [],[]
+
         for i in range(new_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=False))
         for i in range(exp_chef_num):
@@ -133,7 +148,7 @@ class Ice_creamShop:
         return (chef_cost + cashier_cost)*(Ice_creamShop.total_sec/3600)
 
     def is_within_budget(self,budget):
-        if Ice_creamShop.total_variable_cost()<=budget:
+        if Ice_creamShop.total_variable_cost(self)<=budget:
             return True
         return False
 
@@ -210,7 +225,9 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
         order_q = Queue()
         prep_q = Queue()
         customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
-
+        #if icshop.is_within_budget(budget):
+        #    print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
+        #      %(icshop.exp_chef_num, icshop.new_chef_num, icshop.exp_cashier_num, icshop.new_cashier_num))
         #print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
 
         order_lis = []  # a list for different Ordering object (each cashier constructs an Ordering object)
@@ -248,6 +265,13 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
                     ordering.finishOrder = False
                     for ic_order in ordering.order_indiv:
                         prep_q.enqueue(ic_order)
+                        if ic_order[1] == "S":
+                            revenue += icshop.price_S
+                        elif ic_order[1] == "M":
+                            revenue += icshop.price_M
+                        else:
+                            revenue += icshop.price_L
+
 
             for preparing in prepare_lis:  # check if any chef is not busy
                 if (not preparing.busy()) and (not prep_q.isEmpty()):
@@ -270,6 +294,9 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
                 #print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                 #print("Finishing the remaining orders...")
             if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
+                print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars. Today's profit is: $%s" \
+                          %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),"{:,}".format(revenue),"{:,}".format(revenue - budget - icshop.total_variable_cost())))
+                print("Icecream Shop closes for the day. See you again!")   
                 #print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nIcecream Shop closes for the day. See you again!" \
                 #      %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60)))
                 break
@@ -297,6 +324,7 @@ def new_customer(currentSecond):
             return True
         else:
             return False
+
 
 class RandomDist():
     '''
