@@ -47,13 +47,18 @@ class Customer:
         return order_list
 
 class Employee:
-    # abstract class for all kinds of employee
+    # base class for all kinds of employee
     def __init__(self, id, is_experienced:bool):
         self.id = id
         self.is_experienced = is_experienced
 
-class Cashier(Employee):
+    def get_salary(self):
+        pass
+
+class Cashier():
     def __init__(self, id, is_experienced:bool):
+        # self.id = id
+        # self.is_experienced = is_experienced
         Employee.__init__(self,id,is_experienced)
         if is_experienced:
             self._salary = 12  #$12/hr
@@ -68,9 +73,11 @@ class Cashier(Employee):
     def get_salary(self):
         return self._salary
 
-class Chef(Employee):
+class Chef():
     def __init__(self, id, is_experienced:bool):
-        Employee.__init__(self,id, is_experienced)
+        # self.id = id
+        # self.is_experienced = is_experienced
+        Employee.__init__(self, id, is_experienced)
         if is_experienced:
             self._salary = 17  #$17/hr
             self._prep_time = NormalDist(60,5,30,90).random()
