@@ -221,6 +221,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
     while True:
         icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
         cust_id = 0
+        revenue=0
+        ordering_waitingtimes=[]
         waitingtimes = []
         order_q = Queue()
         prep_q = Queue()
@@ -251,12 +253,13 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
             for ordering in order_lis: # check if any cashier is not busy
                 if (not ordering.busy()) and (not order_q.isEmpty()):
                     next_customer = order_q.dequeue()
-                    #print(">>> %s: Cashier ID %s (is_experienced=%s) starts serving customer %s. Order: %s size S icecream, %s size M icecream and %s size L icecream"
-                    #                  % (seconds_to_hhmmss(currentSecond),ordering.cashier.id,ordering.cashier.is_experienced,next_customer.cust_id, next_customer.s_icecream_num(), next_customer.m_icecream_num(),
-                    #                     next_customer.l_icecream_num()))
+                #    print(">>> %s: Cashier ID %s (is_experienced=%s) starts serving customer %s. Order: %s size S icecream, %s size M icecream and %s size L icecream"
+                #                      % (seconds_to_hhmmss(currentSecond),ordering.cashier.id,ordering.cashier.is_experienced,next_customer._cust_id, next_customer.s_icecream_num(), next_customer.m_icecream_num(),
+                #                         next_customer.l_icecream_num()))
                     icshop.update_total_s_ic(next_customer.s_icecream_num())
                     icshop.update_total_m_ic(next_customer.m_icecream_num())
                     icshop.update_total_l_ic(next_customer.l_icecream_num())
+                    ordering_waitingtimes.append(currentSecond - next_customer.get_arrivaltime())
                     ordering.startNext(next_customer, currentSecond)
                 else:
                     ordering.tick()
@@ -284,8 +287,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
                 #else:
                 preparing.tick()
                 if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
-                    #print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
-                    #seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
+                #    print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
+                #    seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
                     # waiting time for each customer
                     waitingtimes.append(currentSecond-preparing.arrival_time)
                     Preparing.count_ic_order[preparing.cust_id] = 0
@@ -294,18 +297,26 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
                 #print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                 #print("Finishing the remaining orders...")
             if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
-                print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars. Today's profit is: $%s" \
-                          %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),"{:,}".format(revenue),"{:,}".format(revenue - budget - icshop.total_variable_cost())))
-                print("Icecream Shop closes for the day. See you again!")   
+                #print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars. Today's profit is: $%s" \
+                #          %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),"{:,}".format(revenue),"{:,}".format(revenue - budget - icshop.total_variable_cost())))
+                #print(
+                #    "%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars." \
+                #    % (seconds_to_hhmmss(currentSecond), len(waitingtimes),
+                #       round((sum(waitingtimes) / len(waitingtimes)) / 60), "{:,}".format(revenue)))
+                #print("Icecream Shop closes for the day. See you again!")
                 #print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nIcecream Shop closes for the day. See you again!" \
                 #      %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60)))
                 break
         chef_ic_list=[]
         for chef in icshop.chef_list:
             chef_ic_list.append(chef.total_ic)
+        #print(ordering_waitingtimes)
+        #print(waitingtimes)
+        preparing_waitingtimes=[i-j for i,j in zip(waitingtimes,ordering_waitingtimes)]
+        #print(preparing_waitingtimes)
         outfile=open("customer_records.csv","a")
         #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#customers,avg_waiting_time
-        print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,chef_ic_list,len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60)),file=outfile)
+        print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,chef_ic_list,len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),round((sum(waitingtimes)/len(waitingtimes))/60)),file=outfile)
         outfile.close()
         break
 
@@ -422,6 +433,8 @@ def seconds_to_mmss(second_number):
 
 
 if __name__ == '__main__':
+    #simulation(2,1,1,0)
+    #"""
     count=0
     for exp_chef_num in range (1,3):
         for new_chef_num in range (0,2):
@@ -432,3 +445,4 @@ if __name__ == '__main__':
                         print(count)
                         simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
                         #print("++++++++++++++++++++++++++++")
+    #"""
