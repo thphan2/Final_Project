@@ -11,9 +11,6 @@ class Customer:
         self._arrival_time = arrival_time
         self._order_time = NormalDist(120,3,60,300).random()
         self._thinking_time = random.uniform(0,120)
-        self.price_S = 4
-        self.price_M = 6
-        self.price_L = 8
 
     def get_cust_id(self):
         return self._cust_id
@@ -103,6 +100,9 @@ class Ice_creamShop:
     # shop opens from 10AM - 9PM (11 hours) 11hours = 39600 sec
     total_sec = 39600
     def __init__(self):
+        self.price_S = 4
+        self.price_M = 6
+        self.price_L = 8
 
         exp_chef_num = random.randint(1, 6)
         new_chef_num = random.randint(2, 6)
@@ -210,7 +210,7 @@ def simulation(budget):
         customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
         if icshop.total_variable_cost() < budget:
             print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
-
+            revenue = 0
             order_lis = []  # a list for different Ordering object (each cashier constructs an Ordering object)
             prepare_lis = []  # a list for different Preparing object (each chef constructs an Preparing object)
             for cashier in icshop.cashier_list:
@@ -241,6 +241,12 @@ def simulation(budget):
                         ordering.finishOrder = False
                         for ic_order in ordering.order_indiv:
                             prep_q.enqueue(ic_order)
+                            if ic_order[1] == "S":
+                                revenue += icshop.price_S
+                            elif ic_order[1] == "M":
+                                revenue += icshop.price_M
+                            else:
+                                revenue += icshop.price_L
 
                 for preparing in prepare_lis:  # check if any chef is not busy
                     if (not preparing.busy()) and (not prep_q.isEmpty()):
@@ -262,8 +268,9 @@ def simulation(budget):
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
                 if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
-                    print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nIcecream Shop closes for the day. See you again!" \
-                          %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60)))
+                    print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars. Today's profit is: $%s" \
+                          %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),"{:,}".format(revenue),"{:,}".format(revenue - budget - icshop.total_variable_cost())))
+                    print("Icecream Shop closes for the day. See you again!")
                     break
             break
         else:
