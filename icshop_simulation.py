@@ -55,7 +55,7 @@ class Employee:
     def get_salary(self):
         pass
 
-class Cashier():
+class Cashier(Employee):
     def __init__(self, id, is_experienced:bool):
         # self.id = id
         # self.is_experienced = is_experienced
@@ -73,7 +73,7 @@ class Cashier():
     def get_salary(self):
         return self._salary
 
-class Chef():
+class Chef(Employee):
     def __init__(self, id, is_experienced:bool):
         # self.id = id
         # self.is_experienced = is_experienced
