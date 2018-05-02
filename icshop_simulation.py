@@ -104,23 +104,23 @@ class Ice_creamShop:
         self.price_M = 6
         self.price_L = 8
 
-        exp_chef_num = random.randint(1, 6)
-        new_chef_num = random.randint(2, 6)
-        exp_cashier_num = random.randint(1, 5)
-        new_cashier_num = random.randint(0, 5)
+        self.exp_chef_num = random.randint(1, 6)
+        self.new_chef_num = random.randint(2, 6)
+        self.exp_cashier_num = random.randint(1, 5)
+        self.new_cashier_num = random.randint(0, 5)
 
         self.chef_list, self.cashier_list = [],[]
-        for i in range(exp_chef_num):
+        for i in range(self.exp_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=True))
-        for i in range(new_chef_num):
-            self.chef_list.append(Chef(exp_chef_num+i+1, is_experienced=False))
-        for i in range(exp_cashier_num):
+        for i in range(self.new_chef_num):
+            self.chef_list.append(Chef(self.exp_chef_num+i+1, is_experienced=False))
+        for i in range(self.exp_cashier_num):
             self.cashier_list.append(Cashier(i+1,is_experienced=True))
-        for i in range(new_cashier_num):
-            self.cashier_list.append(Cashier(exp_cashier_num+i+1,is_experienced=False))
+        for i in range(self.new_cashier_num):
+            self.cashier_list.append(Cashier(self.exp_cashier_num+i+1,is_experienced=False))
          
-        print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
-              %(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num))
+        # print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
+        #       %(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num))
 
     def total_variable_cost(self):
         chef_cost, cashier_cost = 0, 0
@@ -208,7 +208,10 @@ def simulation(budget):
         order_q = Queue()
         prep_q = Queue()
         customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
-        if icshop.total_variable_cost() < budget:
+        #if icshop.total_variable_cost() < budget:
+        if icshop.is_within_budget(budget):
+            print("There are %s experienced chef, %s inexperienced chef, %s experienced cashier and %s inexperienced cashier in the shop."
+              %(icshop.exp_chef_num, icshop.new_chef_num, icshop.exp_cashier_num, icshop.new_cashier_num))
             print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
             revenue = 0
             order_lis = []  # a list for different Ordering object (each cashier constructs an Ordering object)
@@ -273,8 +276,8 @@ def simulation(budget):
                     print("Icecream Shop closes for the day. See you again!")
                     break
             break
-        else:
-            print("Budget is not enough. Please adjust employee numbers.\n")
+        # else:
+        #     print("Budget is not enough. Please adjust employee numbers.\n")
 
 
 # More customers come from 12pm - 3pm
