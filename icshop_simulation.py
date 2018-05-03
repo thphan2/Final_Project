@@ -278,8 +278,10 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 print("Finishing the remaining orders...")
             if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
                 if timelog:
-                    print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\nTotal revenue is: $%s dollars. Today's profit is: $%s" \
-                              %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),"{:,}".format(revenue),"{:,}".format(revenue - icshop.total_variable_cost())))
+                    print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
+                    \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
+                              %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),\
+                                "{:,}".format(revenue),"{:,}".format(revenue - icshop.total_variable_cost())))
                     print("Icecream Shop closes for the day. See you again!")
                 break
 
@@ -287,7 +289,10 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
         preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
         outfile=open(filename+".csv","a")
         #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
-        print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
+        print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
+              (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
+               len(waitingtimes),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),\
+               round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
         outfile.close()
     else:
         if timelog:
@@ -400,14 +405,13 @@ def seconds_to_hhmmss(second_number):
     return time.strftime('%H:%M:%S%p', time.gmtime(43200+second_number))
 
 if __name__ == '__main__':
-    #simulation(2,1,1,0)
-    #"""
     count=0
-    for exp_chef_num in range (1,3):
+    for exp_chef_num in range (1,2):
         for new_chef_num in range (0,2):
             for exp_cashier_num in range(1,3):
                 for new_cashier_num in range(0,2):
-                    for i in range(150):
+                    for i in range(1):
                         count+=1
                         print(count)
                         simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,100000, "sample", False)
+
