@@ -4,19 +4,17 @@
 Yuejun Wu, Thuong Phan
 
 # Monte Carlo Simulation Scenario & Purpose:
-(be sure to read the instructions given in course Moodle)
 One day in summer of Chicago, the owners of a mom&pop shop want to know what's the average waiting time for a customer to complete an order.
 
 ## Simulation's variables of uncertainty
-For each such variable, how did you decide the range and probability distribution to use?  Do you think it's a good representation of reality?
 
-Ice-cream: Number of ice-cream for each type ordered by customers (uniform distribution + normal discrete distribution)
-Customer: Ordering time (normal distribution)
-Customer: Thinking time (uniform distribution)
-Customer: Number of customers comes to the shop in different time during a day (normal distribution)
-Chef: Preparation time based on various levels of experience (normal distribution)
-Cashier: Preparation time based on various levels of experience (normal distribution)
-Customer coming interval: uniform distribution based on different range of time in a day
+1. Ice-cream: Number of ice-cream for each type ordered by customers (uniform distribution + normal discrete distribution)
+2. Customer: Ordering time (normal distribution)
+3. Customer: Thinking time (uniform distribution)
+4. Customer: Number of customers comes to the shop in different time during a day (normal distribution)
+5. Chef: Preparation time based on various levels of experience (normal distribution)
+6. Cashier: Preparation time based on various levels of experience (normal distribution)
+7. Customer coming interval: uniform distribution based on different range of time in a day
 
 
 ## Hypothesis or hypotheses before running the simulation:
