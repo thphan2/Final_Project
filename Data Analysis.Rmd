@@ -1,0 +1,117 @@
+---
+title: "Data analysis"
+date: "5/3/2018"
+output: html_document
+---
+# Question of interest
+For owners of a small ice-cream shop, it's crucial to try to maximize customer satisfactory. Customer detention is key to the survival of small business, and customer satisfactory is related to customer detention rate. In this report, we use customer waiting time per day as the proxy to customer satisfactory. Our assumption is the number of different experienced level chef and cashier, along with average number of ice-cream per customer, number of small/medium/large ice-cream will have impact on waiting time. 
+
+NULL Hypothesis: coefficient of (the number of different experienced level chef and cashier, average number of ice-cream per customer, number of small/medium/large ice-cream) are equal to 0.
+
+Alternative Hypothesis: At least one of the coefficients is different from 0.
+
+# Data
+We generate thousands of data through simulation program under the same repository (icshop_simulation.py). 
+
+## load data
+```{r}
+library(readr)
+fulldata <- read_csv("sample.csv",col_names = FALSE)
+colnames(fulldata) <- c("experienced chef", "new chef", "experienced cashier", "new cashier", "small icecream", "medium icecream", "large icecream", "total icecream", "number of customer", "order waiting time", "prepare waiting time", "waiting time", "profit")
+
+# number of ice-cream/customer
+fulldata$ic_per_cust = fulldata$`total icecream`/fulldata$`number of customer`
+```
+
+## Statistic summary
+```{r}
+data <- fulldata[c(-13)]
+summary(data)
+```
+
+## Covariance table
+```{r}
+attach(data)
+cor(data[,c(5:13)])  # exclude discrete variables
+pairs(data[,c(5:13)],pch = ".", main = "Pairwise scatter plots")
+```
+
+From the plot and coveriance table we can see that total ice-cream is highly correlated with small/medium/large ice-cream, which is not surprised. In our case, we are interested in different sizes of ice-cream's influence on waiting time so we will exclude varibale of total icecream. As for waiting time, waiting time = order waiting time + prepare waiting time. We will use waiting time as dependent variable. 
+
+
+### Plots of average waiting time per customer
+```{r}
+# We first explore dependent variable 
+
+par(mfrow = c(2,1))
+# density plot
+hist(`waiting time`, breaks = 400, freq = FALSE, col = "lightgreen", border = "darkgreen",axes = F
+     ,xlab = "Waiting time (minuets)", main="Density plot of average waiting time/customer")
+axis(1, at=seq(0,100,5))
+axis(2, at = seq(0,0.2,0.05))
+
+# boxplot
+boxplot(`waiting time`, horizontal = T,xlab = "Waiting time(minutes)",main = "Boxplot of average waiting time",axes = F,staplewex = 1)
+text(x=fivenum(`waiting time`), labels =fivenum(`waiting time`), y = 1.25)
+```
+
+We can tell from the plot that average waiting time is around 9 minutes 20% of the time, and the data has a heavy tail, which suggests many unrealistic simulation data. Boxplot also suggests many outlier data. The medium average waiting is 18 minutes based on boxplot. 
+
+### Fit model based on observations
+
+```{r}
+mod1 <- lm(`waiting time`~ `experienced cashier` + `experienced chef` + `new cashier` + `new chef` + `small icecream`+`medium icecream`+`large icecream` + ic_per_cust)
+summary(mod1)
+par(mfrow = c(2,2))
+plot(mod1)
+```
+### Diagnostic
+From diagnostic plot, we can tell mod1 violates some assumptions of linear regression model. Upper left plot shows the model is not linear, Q-Q plot indicates it violates normality and lower left plot shows mod1 doesn't have constant variance in errors. Lower right plot suggests there are outliers in data which conforms our finding in the previous plot regrding average waiting time. 
+
+Next we will do transformation and exclude outliers before refitting the model.
+
+### Transformation
+```{r}
+# Exclude outliers
+new_data <- data[c(-10,-69, -48),]
+
+# Since mod1 violates constant variance assumption, we will do transformation on dependant variable using boxbox transformation. 
+library(MASS)
+boxcox(mod1)
+# boxcox shows that lambda=-0.5
+mod2 <- lm((new_data$`waiting time`) ^(-0.5) ~ new_data$`experienced cashier` + new_data$`experienced chef` + new_data$`new cashier` + new_data$`new chef` + new_data$`small icecream`+new_data$`medium icecream`+new_data$`large icecream` + new_data$ic_per_cust, data = new_data)
+summary(mod2)
+
+# Diagnostic plot
+par(mfrow = c(2,2))
+plot(mod2)
+```
+
+Diagnostic plots of mod2 show a better model than mod1. Assumptions of linear model are satisfied. Besides, we can tell from summary that adjusted R squared improved from 0.7251 to 0.8559, indicating a better model of mod2. The summary shows that the number of new cashier and nubmer of experienced cashier do not have significant effect on waiting time. All other variables have significant effect on waiting time. 
+
+Let's analyze mod2.
+
+### Collinearity
+There are several variables are significant based on p-value, we want to check if there are collinearity among them.
+```{r}
+library(faraway)
+vif(mod2)
+```
+Variance inflation factor are all below 10 except ice-cream per customer, indicating no severe collinearity problems. But we need to drop ic_per_cust.
+
+# Summary
+NULL hypothesis is rejected as p-value of F-statistics is less than 5% (assume 95% confidence interval), meaning at least one variable indicated in the begining of the report is different from 0.
+
+Our final model: waiting time^(-0.5) = constant +  (1.188e-01)*`experienced chef` + (5.108e-02)*`new chef` + (-5.022e-04)*`small icecream` + 
+    (-7.734e-04)*`medium icecream` + (-1.037e-03)*`large icecream`
+
+
+The result matches what we've analyzed in jupyter notebook under the same repository(Analysis of simulation.ipynb), we find out that experience level is not very important on how the cashier performs while experience is indeed important in hiring chef. 
+
+
+
+
+
+
+
+
