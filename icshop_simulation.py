@@ -226,9 +226,6 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
             order_lis.append(Ordering(cashier))
         for chef in icshop.chef_list:
             prepare_lis.append(Preparing(chef))
-
-        cashier_index = 0
-        chef_index=0
         revenue = 0
         for currentSecond in range(sys.maxsize):
             # shop stops taking new order at 9:45pm
@@ -413,4 +410,4 @@ if __name__ == '__main__':
                     for i in range(150):
                         count+=1
                         print(count)
-                        simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,500, "sample", False)
+                        simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,100000, "sample", False)
