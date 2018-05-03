@@ -190,7 +190,9 @@ par(mfrow = c(2,2))
 plot(mod1)
 ```
 
-![](Data%20Analysis_figs/Data%20Analysis-unnamed-chunk-6-1.png) \#\#\# Diagnostic From diagnostic plot, we can tell mod1 violates some assumptions of linear regression model. Upper left plot shows the model is not linear, Q-Q plot indicates it violates normality and lower left plot shows mod1 doesn't have constant variance in errors. Lower right plot suggests there are outliers in data which conforms our finding in the previous plot regrding average waiting time.
+![](Data%20Analysis_figs/Data%20Analysis-unnamed-chunk-6-1.png) 
+### Diagnostic 
+From diagnostic plot, we can tell mod1 violates some assumptions of linear regression model. Upper left plot shows the model is not linear, Q-Q plot indicates it violates normality and lower left plot shows mod1 doesn't have constant variance in errors. Lower right plot suggests there are outliers in data which conforms our finding in the previous plot regrding average waiting time.
 
 Next we will do transformation and exclude outliers before refitting the model.
 
