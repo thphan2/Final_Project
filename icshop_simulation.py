@@ -214,109 +214,114 @@ def has_raw_material(customer, raw_material_cost):
     return customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost
 
 def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget, filename="default", timelog = True):
-    icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
-    cust_id = 0
-    ordering_waitingtimes = []
-    waitingtimes = []
-    order_q = Queue()
-    prep_q = Queue()
-    customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
-    if icshop.is_within_budget(budget):
-        if timelog:
-            print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
-
-        order_lis = []  # a list for different Ordering object (each cashier constructs an Ordering object)
-        prepare_lis = []  # a list for different Preparing object (each chef constructs an Preparing object)
-        for cashier in icshop.cashier_list:
-            order_lis.append(Ordering(cashier))
-        for chef in icshop.chef_list:
-            prepare_lis.append(Preparing(chef))
-        revenue = 0
-        for currentSecond in range(sys.maxsize):
-            # shop stops taking new order at 9:45pm
-            if currentSecond<Ice_creamShop.total_sec-900 and icshop.raw_material_cost >= 0:
-                if new_customer(currentSecond):
-                    customer = Customer(cust_id + 1, currentSecond)
-                    cust_id += 1
-                    # check if raw material is enough for making ice-cream
-                    if has_raw_material(customer,icshop.raw_material_cost):
-                        order_q.enqueue(customer)
-                        if timelog:
-                            print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
-                    else:
-                        print("Running out of raw material. Stop taking orders now. Process the remaining orders...")
-                    icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
-
-            # avoid first cashier does most the work
-            shuffle(order_lis)
-            for ordering in order_lis: # check if any cashier is not busy
-                if (not ordering.busy()) and (not order_q.isEmpty()):
-                    next_customer = order_q.dequeue()
-                    #print("cashier ", ordering.cashier.id, "is servering for you.")
-                    icshop.update_total_s_ic(next_customer.s_icecream_num())
-                    icshop.update_total_m_ic(next_customer.m_icecream_num())
-                    icshop.update_total_l_ic(next_customer.l_icecream_num())
-                    ordering_waitingtimes.append(currentSecond - next_customer.get_arrivaltime())
-                    ordering.startNext(next_customer, currentSecond)
-                else:
-                    ordering.tick(timelog)
-                if ordering.finishOrder:
-                    customer_num_ic[ordering.order_stats[0]] = ordering.order_stats[1]
-                    ordering.finishOrder = False
-                    for ic_order in ordering.order_indiv:
-                        prep_q.enqueue(ic_order)
-                        if ic_order[1] == "S":
-                            revenue += icshop.price_S
-                        elif ic_order[1] == "M":
-                            revenue += icshop.price_M
-                        else:
-                            revenue += icshop.price_L
-
-            # avoid first chef in the list does most the work
-            shuffle(prepare_lis)
-            for preparing in prepare_lis:  # check if any chef is not busy
-                if (not preparing.busy()) and (not prep_q.isEmpty()):
-                    next_ic_order = prep_q.dequeue()
-                    #print("q size after dequeue: ",prep_q.size(),"cust id: ", next_ic_order[0])
-                    preparing.startNext(next_ic_order,currentSecond)
-                else:
-                    preparing.tick()
-                if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
-                    #print("cust_id:",preparing.cust_id)
-                    #print("customer_num_ic[preparing.cust_id]",customer_num_ic[preparing.cust_id])
-                    Preparing.count_ic_order[preparing.cust_id]=0
-                    if timelog:
-                        print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
-                    seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
-                    # waiting time for each customer
-                    waitingtimes.append(currentSecond-preparing.arrival_time)
-                    preparing.finish_ic_order = False
-            if timelog and currentSecond==Ice_creamShop.total_sec-900:
-                print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
-                print("Finishing the remaining orders...")
-            if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
-                    (icshop.raw_material_cost<=0 and order_q.isEmpty() and prep_q.isEmpty()):
-                if timelog:
-                    print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
-                    \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
-                              %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),\
-                                "{:,}".format(revenue),"{:,}".format(revenue - icshop.total_variable_cost())))
-                    print("Icecream Shop closes for the day. See you again!")
-                break
-
-        icshop.update_ic_num(icshop.total_s_ic, icshop.total_m_ic, icshop.total_l_ic)
-        preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
-        if not timelog:
-            outfile=open(filename+".csv","a")
-            #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
-            print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
-                  (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
-                   len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),\
-                   round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
-            outfile.close()
+    if (exp_chef_num == new_chef_num == 0):
+        print("Wrong simulation. Shop cannot operate without a chef!")
+    elif (exp_cashier_num == new_cashier_num == 0):
+        print("Wrong simulation. Shop cannot operate without a cashier!")
     else:
-        if timelog:
-            print("Budget is not enough. Please adjust employee numbers.")
+        icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
+        cust_id = 0
+        ordering_waitingtimes = []
+        waitingtimes = []
+        order_q = Queue()
+        prep_q = Queue()
+        customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
+        if icshop.is_within_budget(budget):
+            if timelog:
+                print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
+
+            order_lis = []  # a list for different Ordering object (each cashier constructs an Ordering object)
+            prepare_lis = []  # a list for different Preparing object (each chef constructs an Preparing object)
+            for cashier in icshop.cashier_list:
+                order_lis.append(Ordering(cashier))
+            for chef in icshop.chef_list:
+                prepare_lis.append(Preparing(chef))
+            revenue = 0
+            for currentSecond in range(sys.maxsize):
+                # shop stops taking new order at 9:45pm
+                if currentSecond<Ice_creamShop.total_sec-900 and icshop.raw_material_cost >= 0:
+                    if new_customer(currentSecond):
+                        customer = Customer(cust_id + 1, currentSecond)
+                        cust_id += 1
+                        # check if raw material is enough for making ice-cream
+                        if has_raw_material(customer,icshop.raw_material_cost):
+                            order_q.enqueue(customer)
+                            if timelog:
+                                print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
+                        else:
+                            print("Running out of raw material. Stop taking orders now. Process the remaining orders...")
+                        icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
+
+                # avoid first cashier does most the work
+                shuffle(order_lis)
+                for ordering in order_lis: # check if any cashier is not busy
+                    if (not ordering.busy()) and (not order_q.isEmpty()):
+                        next_customer = order_q.dequeue()
+                        #print("cashier ", ordering.cashier.id, "is servering for you.")
+                        icshop.update_total_s_ic(next_customer.s_icecream_num())
+                        icshop.update_total_m_ic(next_customer.m_icecream_num())
+                        icshop.update_total_l_ic(next_customer.l_icecream_num())
+                        ordering_waitingtimes.append(currentSecond - next_customer.get_arrivaltime())
+                        ordering.startNext(next_customer, currentSecond)
+                    else:
+                        ordering.tick(timelog)
+                    if ordering.finishOrder:
+                        customer_num_ic[ordering.order_stats[0]] = ordering.order_stats[1]
+                        ordering.finishOrder = False
+                        for ic_order in ordering.order_indiv:
+                            prep_q.enqueue(ic_order)
+                            if ic_order[1] == "S":
+                                revenue += icshop.price_S
+                            elif ic_order[1] == "M":
+                                revenue += icshop.price_M
+                            else:
+                                revenue += icshop.price_L
+
+                # avoid first chef in the list does most the work
+                shuffle(prepare_lis)
+                for preparing in prepare_lis:  # check if any chef is not busy
+                    if (not preparing.busy()) and (not prep_q.isEmpty()):
+                        next_ic_order = prep_q.dequeue()
+                        #print("q size after dequeue: ",prep_q.size(),"cust id: ", next_ic_order[0])
+                        preparing.startNext(next_ic_order,currentSecond)
+                    else:
+                        preparing.tick()
+                    if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
+                        #print("cust_id:",preparing.cust_id)
+                        #print("customer_num_ic[preparing.cust_id]",customer_num_ic[preparing.cust_id])
+                        Preparing.count_ic_order[preparing.cust_id]=0
+                        if timelog:
+                            print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
+                        seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
+                        # waiting time for each customer
+                        waitingtimes.append(currentSecond-preparing.arrival_time)
+                        preparing.finish_ic_order = False
+                if timelog and currentSecond==Ice_creamShop.total_sec-900:
+                    print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
+                    print("Finishing the remaining orders...")
+                if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
+                        (icshop.raw_material_cost<=0 and order_q.isEmpty() and prep_q.isEmpty()):
+                    if timelog:
+                        print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
+                        \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
+                                  %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),\
+                                    "{:,}".format(revenue),"{:,}".format(revenue - icshop.total_variable_cost())))
+                        print("Icecream Shop closes for the day. See you again!")
+                    break
+
+            icshop.update_ic_num(icshop.total_s_ic, icshop.total_m_ic, icshop.total_l_ic)
+            preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
+            if not timelog:
+                outfile=open(filename+".csv","a")
+                #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
+                print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
+                      (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
+                       len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),\
+                       round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
+                outfile.close()
+        else:
+            if timelog:
+                print("Budget is not enough. Please adjust employee numbers.")
 
 
 # More customers come from 3PM - 5PM and 7PM - 8:30PM
@@ -426,12 +431,13 @@ def seconds_to_hhmmss(second_number):
 
 if __name__ == '__main__':
     # count=0
-    for exp_chef_num in range (1,2):
-        for new_chef_num in range (0,1):
-            for exp_cashier_num in range(1,2):
-                for new_cashier_num in range(0,1):
-                    for i in range(1):
-                        # count+=1
-                        # print(count)
-                        simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,1000, "", True)
+    # for exp_chef_num in range (1,2):
+    #     for new_chef_num in range (0,1):
+    #         for exp_cashier_num in range(1,2):
+    #             for new_cashier_num in range(0,1):
+    #                 for i in range(1):
+    #                     # count+=1
+    #                     # print(count)
+    #                     simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,1000, "", True)
+    simulation(0,2,0,0, 5000, "", True)
 
