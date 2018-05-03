@@ -1,4 +1,5 @@
 import random
+from random import shuffle
 import time
 from collections import Counter
 import sys
@@ -7,7 +8,7 @@ class Customer:
     # cust_order example: {'S':1, 'M':2 'L':1}
     def __init__(self, cust_id, arrival_time):
         self._cust_id = cust_id
-        self._cust_order = {'S': GaussianDiscrete(1,1,0,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
+        self._cust_order = {'S': GaussianDiscrete(1,1,1,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
         self._arrival_time = arrival_time
         self._order_time = NormalDist(120,3,60,300).random()
         self._thinking_time = random.uniform(0,120)
@@ -99,7 +100,7 @@ class Ice_creamShop:
         self.price_S = 4
         self.price_M = 6
         self.price_L = 8
-        #self.rawMaterial_cost = 200
+        self.raw_material_cost = 700
         self.chef_list, self.cashier_list = [],[]
 
         for i in range(new_chef_num):
@@ -138,15 +139,7 @@ class Ice_creamShop:
         return (chef_cost + cashier_cost)*(Ice_creamShop.total_sec/3600)
 
     def is_within_budget(self,budget):
-        if Ice_creamShop.total_variable_cost(self) <= budget:
-            return True
-        return False
-
-    def find_emp_combination(self,budget,exp_chef_sal,new_chef_sal,exp_cash_sal,new_cash_sal):
-        onehour_budget=budget/Ice_creamShop.total_sec*3600
-
-        max_chefs=int(onehour_budget-exp_chef_sal-exp_cash_sal/new_chef_sal)
-        max_cashiers=int(onehour_budget-exp_chef_sal-exp_cash_sal/new_cash_sal)
+        return Ice_creamShop.total_variable_cost(self) <= budget - self.raw_material_cost
 
 class Ordering():
     def __init__(self, cashier: Cashier):
@@ -175,6 +168,7 @@ class Ordering():
         self.order_indiv = self.curr_customer.order_list()
         # total number of ice-cream the customer orders
         self.order_stats = (self.curr_customer.get_cust_id(), len(self.curr_customer.order_list()))
+        #print("order stats: ",self.order_stats)
         self.time_remaining = new_customer.get_serving_time() + self.cashier.get_process_time()
         self.order_complete_time = order_start_time + self.time_remaining
 
@@ -199,16 +193,27 @@ class Preparing:
             if self.time_remaining <= 0:
                 self.finish_ic_order = True
                 Preparing.count_ic_order[self.curr_order[0]] += 1
-                self.cust_id = self.curr_order[0]
+                #print(Preparing.count_ic_order)
                 self.arrival_time = self.curr_order[-1]
                 self.curr_order = None
 
     def startNext(self, new_order, prepare_start_time):
         self.curr_order = new_order
+        self.cust_id = self.curr_order[0]
+        #print("cust id_startnext: ", self.cust_id)
         self.time_remaining = self.chef.get_prep_time(new_order[1])  #example of new_order: (cust_id, "S", arrival time)
         self.prepare_end_time = prepare_start_time + self.time_remaining
 
-def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget, filename, timelog = True):
+def has_raw_material(customer, raw_material_cost):
+    # if customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost:
+    #     raw_material_cost -= customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2
+    #     return True
+    # else:
+    #     raw_material_cost -= customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2
+    #     return False
+    return customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost
+
+def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget, filename="default", timelog = True):
     icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
     cust_id = 0
     ordering_waitingtimes = []
@@ -229,17 +234,25 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
         revenue = 0
         for currentSecond in range(sys.maxsize):
             # shop stops taking new order at 9:45pm
-            if currentSecond<Ice_creamShop.total_sec-900:
+            if currentSecond<Ice_creamShop.total_sec-900 and icshop.raw_material_cost >= 0:
                 if new_customer(currentSecond):
                     customer = Customer(cust_id + 1, currentSecond)
                     cust_id += 1
-                    order_q.enqueue(customer)
-                    if timelog:
-                        print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
+                    # check if raw material is enough for making ice-cream
+                    if has_raw_material(customer,icshop.raw_material_cost):
+                        order_q.enqueue(customer)
+                        if timelog:
+                            print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
+                    else:
+                        print("Running out of raw material. Stop taking orders now. Process the remaining orders...")
+                    icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
 
+            # avoid first cashier does most the work
+            shuffle(order_lis)
             for ordering in order_lis: # check if any cashier is not busy
                 if (not ordering.busy()) and (not order_q.isEmpty()):
                     next_customer = order_q.dequeue()
+                    #print("cashier ", ordering.cashier.id, "is servering for you.")
                     icshop.update_total_s_ic(next_customer.s_icecream_num())
                     icshop.update_total_m_ic(next_customer.m_icecream_num())
                     icshop.update_total_l_ic(next_customer.l_icecream_num())
@@ -259,24 +272,30 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                         else:
                             revenue += icshop.price_L
 
+            # avoid first chef in the list does most the work
+            shuffle(prepare_lis)
             for preparing in prepare_lis:  # check if any chef is not busy
                 if (not preparing.busy()) and (not prep_q.isEmpty()):
                     next_ic_order = prep_q.dequeue()
+                    #print("q size after dequeue: ",prep_q.size(),"cust id: ", next_ic_order[0])
                     preparing.startNext(next_ic_order,currentSecond)
                 else:
                     preparing.tick()
                 if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
+                    #print("cust_id:",preparing.cust_id)
+                    #print("customer_num_ic[preparing.cust_id]",customer_num_ic[preparing.cust_id])
+                    Preparing.count_ic_order[preparing.cust_id]=0
                     if timelog:
                         print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
                     seconds_to_hhmmss(preparing.prepare_end_time), preparing.cust_id))
                     # waiting time for each customer
                     waitingtimes.append(currentSecond-preparing.arrival_time)
-                    Preparing.count_ic_order[preparing.cust_id] = 0
                     preparing.finish_ic_order = False
             if timelog and currentSecond==Ice_creamShop.total_sec-900:
                 print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                 print("Finishing the remaining orders...")
-            if currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty():
+            if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
+                    (icshop.raw_material_cost<=0 and order_q.isEmpty() and prep_q.isEmpty()):
                 if timelog:
                     print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
                     \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
@@ -287,13 +306,14 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
 
         icshop.update_ic_num(icshop.total_s_ic, icshop.total_m_ic, icshop.total_l_ic)
         preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
-        outfile=open(filename+".csv","a")
-        #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
-        print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
-              (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
-               len(waitingtimes),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),\
-               round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
-        outfile.close()
+        if not timelog:
+            outfile=open(filename+".csv","a")
+            #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
+            print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
+                  (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
+                   len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),\
+                   round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
+            outfile.close()
     else:
         if timelog:
             print("Budget is not enough. Please adjust employee numbers.")
@@ -308,7 +328,7 @@ def new_customer(currentSecond):
         else:
             return False
     else:
-        num = random.randrange(1,2400) #non-peak hour: customer/2400 sec on average
+        num = random.randrange(1,1200) #non-peak hour: customer/1200 sec on average
         if num == 800:
             return True
         else:
@@ -405,13 +425,13 @@ def seconds_to_hhmmss(second_number):
     return time.strftime('%H:%M:%S%p', time.gmtime(43200+second_number))
 
 if __name__ == '__main__':
-    count=0
+    # count=0
     for exp_chef_num in range (1,2):
-        for new_chef_num in range (0,2):
-            for exp_cashier_num in range(1,3):
-                for new_cashier_num in range(0,2):
+        for new_chef_num in range (0,1):
+            for exp_cashier_num in range(1,2):
+                for new_cashier_num in range(0,1):
                     for i in range(1):
-                        count+=1
-                        print(count)
-                        simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,100000, "sample", False)
+                        # count+=1
+                        # print(count)
+                        simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,1000, "", True)
 
