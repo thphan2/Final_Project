@@ -1,8 +1,9 @@
 ---
 title: "Data analysis"
 date: "5/3/2018"
-output: html_document
+output: rmarkdown::github_document
 ---
+
 # Question of interest
 For owners of a small ice-cream shop, it's crucial to try to maximize customer satisfactory. Customer detention is key to the survival of small business, and customer satisfactory is related to customer detention rate. In this report, we use customer waiting time per day as the proxy to customer satisfactory. Our assumption is the number of different experienced level chef and cashier, along with average number of ice-cream per customer, number of small/medium/large ice-cream will have impact on waiting time. 
 
