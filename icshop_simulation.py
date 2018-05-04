@@ -101,7 +101,9 @@ class Ice_creamShop:
         self.price_M = 6
         self.price_L = 8
         self.raw_material_cost = 700
+        self.is_enough_raw_material = True
         self.chef_list, self.cashier_list = [],[]
+
 
         for i in range(new_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=False))
@@ -252,6 +254,7 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                             icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
 
                         else:
+                            icshop.is_enough_raw_material=False
                             print("Running out of raw material. Stop taking orders now. Process the remaining orders...")
                         #icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
 
@@ -303,7 +306,7 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
                 if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
-                        (icshop.raw_material_cost<=0 and order_q.isEmpty() and prep_q.isEmpty()):
+                        (icshop.is_enough_raw_material==False and order_q.isEmpty() and prep_q.isEmpty()):
                 #if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
                         print("Raw material:",icshop.raw_material_cost)
