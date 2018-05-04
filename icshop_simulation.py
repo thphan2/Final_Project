@@ -331,7 +331,6 @@ class Ordering():
     def tick(self,timelog=True):
         '''
         A function helps keep track of whether an order is completed or not based on remaining time
-
         :param timelog: whether to show the printing message or not
         :return: None
         '''
@@ -347,9 +346,9 @@ class Ordering():
         '''
         new customer will be served
 
-        :param new_customer:
-        :param order_start_time:
-        :return:
+        :param new_customer: Customer, next customer to be served by cashier
+        :param order_start_time: the second that the next customer is served
+        :return: None
         '''
         self.curr_customer = new_customer
         self.order_indiv = self.curr_customer.order_list()
@@ -404,6 +403,12 @@ class Preparing:
                 self.curr_order = None
 
     def startNext(self, new_order, prepare_start_time):
+        """
+        next icecream to be prepared
+        :param new_order: tuple, the next icecream to prepare - format (cust_id, size, arrival time)
+        :param prepare_start_time: the second to start making the next icecream
+        :return: None
+        """
         self.curr_order = new_order
         self.cust_id = self.curr_order[0]
         self.time_remaining = self.chef.get_prep_time(new_order[1])  #example of new_order: (cust_id, "S", arrival time)
@@ -668,5 +673,15 @@ def seconds_to_hhmmss(second_number:int):
 
 if __name__ == '__main__':
     # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
-    simulation(2,1,1,0, 5000, "", True)
+    simulation(1,1,1,0, 5000, "", True)
 
+    # uncomment and run below codes to generate "sample.csv" file for data analysis
+    # by iterating over number of experienced, non-experienced chefs and experienced, non-experienced cashiers
+    # and setting a big enough budget so that all combinations will be within the budget
+    # ====Start of codes====
+    #for exp_chef_num in range(1, 3):
+    #    for new_chef_num in range(0, 2):
+    #        for exp_cashier_num in range(1, 3):
+    #            for new_cashier_num in range(0, 2):
+    #                for i in range(150):
+    #                    simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, 100000, "sample2", False)
