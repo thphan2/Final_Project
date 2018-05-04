@@ -518,6 +518,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
     else:
         icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
         cust_id = 0
+        finish_status=False
+        last_customer_id=0
         ordering_waitingtimes = []  # keep track of each cutomer's ordering waiting time
         waitingtimes = []  # keep track of each customer's overall waiting time (ordering waiting time + preparing waiting time)
         order_q = Queue()
@@ -550,8 +552,9 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                             icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
                         else:
                             icshop.is_enough_raw_material=False
+                            last_customer_id=customer.get_cust_id()-1
                             if timelog:
-                                print("Shop will run out of raw material soon. Only take order till customer ID %s. Stop taking new customers now!" %(customer.get_cust_id()-1))
+                                print("Shop will run out of raw material soon. Only take order till customer ID %s. Stop taking new customers now!" %last_customer_id)
 
                 # avoid first cashier does most the work
                 shuffle(order_lis)
@@ -591,6 +594,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
 
                     # By checking number of ice-cream in each dictionary, we will know whether the order for one customer is finished or not
                     if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
+                        if preparing.cust_id==last_customer_id:
+                            finish_status=True
                         Preparing.count_ic_order[preparing.cust_id]=0
                         if timelog:
                             print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
@@ -602,10 +607,11 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 if timelog and currentSecond==Ice_creamShop.total_sec-900:
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
-
+                #print("Order q:",order_q.items)
+                #print("Prep q:", prep_q.items)
                 #if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
                         #(icshop.is_enough_raw_material == False and order_q.isEmpty() and prep_q.isEmpty()):
-                if (icshop.is_enough_raw_material == False and order_q.isEmpty() and prep_q.isEmpty()):
+                if (icshop.is_enough_raw_material == False and finish_status==True and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
                         print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
                         \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
