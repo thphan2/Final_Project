@@ -1,4 +1,9 @@
 """
+590PR Spring 2018
+Authors: Yuejun Wu, Thuong Phan
+Final Project: Nitrogen Ice-cream Shop Monte Carlo Simulation
+
+
 Add new customers
 >>> cu1=Customer(1,120)
 >>> has_raw_material(cu1,0)
@@ -104,7 +109,7 @@ class Customer:
 
     def order_list(self)->list:
         """
-        Convert the order dictionary of the customer to a list of icecreams
+        Convert the order dictionary of the customer to a list of ice-creams
         """
         order_list = []
         for size in self._cust_order:
@@ -216,7 +221,7 @@ class Ice_creamShop:
         self.price_S = 4
         self.price_M = 6
         self.price_L = 8
-        self.raw_material_cost = 700
+        self.raw_material_cost = 200
         self.is_enough_raw_material = True
         self.chef_list, self.cashier_list = [],[]
         self.total_s_ic=0
@@ -233,7 +238,7 @@ class Ice_creamShop:
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(new_cashier_num+i+1,is_experienced=True))
 
-    def update_total_s_ic(self,s_ic_num:int)->int:
+    def update_total_s_ic(self,s_ic_num:int):
         """
         Update the total icecream size S the shop has sold so far
         :param s_ic_num: number of icecream size S ordered by a customer
@@ -241,7 +246,7 @@ class Ice_creamShop:
         """
         self.total_s_ic=self.total_s_ic+s_ic_num
 
-    def update_total_m_ic(self,m_ic_num:int)->int:
+    def update_total_m_ic(self,m_ic_num:int):
         """
         Update the total icecream size M the shop has sold so far
         :param m_ic_num: number of icecream size M ordered by a customer
@@ -249,7 +254,7 @@ class Ice_creamShop:
         """
         self.total_m_ic=self.total_m_ic+m_ic_num
 
-    def update_total_l_ic(self,l_ic_num:int)->int:
+    def update_total_l_ic(self,l_ic_num:int):
         """
         Update the total icecream size L the shop has sold so far
         :param l_ic_num: number of icecream size L ordered by a customer
@@ -289,7 +294,22 @@ class Ice_creamShop:
 
 
 class Ordering():
+    '''
+    Ordering class instantiates order process between one customer and a cashier
+    '''
     def __init__(self, cashier: Cashier):
+        '''
+        Each ordering process requires information about:
+        - curr_customer: if there is a customer being served
+        - time_remaining: the remaining time of the order
+            (calculated based on customer's ordering time, thinking time and cashier's process time - the time has passed)
+        - cashier: the cashier of ordering object
+        - finishOrder: flag of whether the order is finished
+        - order_indiv: a list of all ice-cream one customer ordered
+        - order_stats: record information of customer id, and the number of ice-cream this customer ordered
+        - order_complete_time: record order completion timestamp
+        :param cashier: cashier object
+        '''
         self.curr_customer = None
         self.time_remaining = 0
         self.cashier = cashier
@@ -298,13 +318,23 @@ class Ordering():
         self.order_stats=((),)
         self.order_complete_time=0
 
-    def busy(self):
+    def busy(self) ->bool:
+        '''
+        Check wether a cashier is serving customer or not
+        :return: bool
+        '''
         if self.curr_customer != None:
             return True
         else:
             return False
 
     def tick(self,timelog=True):
+        '''
+        A function helps keep track of whether an order is completed or not based on remaining time
+
+        :param timelog: whether to show the printing message or not
+        :return: None
+        '''
         if self.busy():
             self.time_remaining -= 1
             if self.time_remaining <= 0:
@@ -314,6 +344,13 @@ class Ordering():
                 self.curr_customer = None
 
     def startNext(self, new_customer:Customer, order_start_time):
+        '''
+        new customer will be served
+
+        :param new_customer:
+        :param order_start_time:
+        :return:
+        '''
         self.curr_customer = new_customer
         self.order_indiv = self.curr_customer.order_list()
         # total number of ice-cream the customer orders
@@ -323,14 +360,35 @@ class Ordering():
 
 
 class Preparing:
-    count_ic_order = Counter()
+    '''
+    Preparing class instantiates one chef's preparation process of one ice-cream
+    '''
+    count_ic_order = Counter()  # record the number of each customer's current completed ice-cream
+                                # (to check if one customer has all his/her order completed)
     def __init__(self, chef:Chef):
+        '''
+        Each preparing process requires information about:
+        - curr_order: if there is an order being processed by the chef
+        - time_remaining: the remaining time of the order
+            (calculated based on chef's processing time - the time has passed)
+        - chef: the chef of preparing object
+        - finish_ic_order: flag of whether the one ice-cream order is finished
+        - arrival_time: customer's arrival time (for calculating waiting time in simulation)
+        - prepare_end_time: record one icecream 's completion timestamp
+        :param chef: chef object
+        '''
         self.curr_order = None
         self.time_remaining = 0
         self.chef = chef
         self.finish_ic_order = False
+        self.arrival_time = 0
+        self.prepare_end_time = 0
 
-    def busy(self):
+    def busy(self) ->bool:
+        '''
+        Check wether a chef is processing order or not
+        :return: bool
+        '''
         if self.curr_order is not None:
             return True
         else:
@@ -460,11 +518,11 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
     else:
         icshop = Ice_creamShop(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num)
         cust_id = 0
-        ordering_waitingtimes = []
-        waitingtimes = []
+        ordering_waitingtimes = []  # keep track of each cutomer's ordering waiting time
+        waitingtimes = []  # keep track of each customer's overall waiting time (ordering waiting time + preparing waiting time)
         order_q = Queue()
         prep_q = Queue()
-        customer_num_ic = {}  #total number of ice-cream for each customer (to check if prep is finished for a certain customer)
+        customer_num_ic = {}  # total number of ice-cream for each customer (to check if prep is finished for a certain customer)
         if icshop.is_within_budget(budget):
             if timelog:
                 print("%s: Nitro Ice-cream Shop opens." % seconds_to_hhmmss(0))
@@ -475,30 +533,31 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 order_lis.append(Ordering(cashier))
             for chef in icshop.chef_list:
                 prepare_lis.append(Preparing(chef))
+
             revenue = 0
             for currentSecond in range(sys.maxsize):
-                # shop stops taking new order at 9:45pm
+                # shop stops taking new order at 9:45pm or running out of raw material
                 if currentSecond<Ice_creamShop.total_sec-900 and icshop.is_enough_raw_material==True :
                     if new_customer(currentSecond):
                         customer = Customer(cust_id + 1, currentSecond)
                         cust_id += 1
+
                         # check if raw material is enough for making ice-cream
                         if has_raw_material(customer,icshop.raw_material_cost):
                             order_q.enqueue(customer)
                             if timelog:
                                 print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
                             icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
-
                         else:
                             icshop.is_enough_raw_material=False
-                            print("Shop will run out of raw material soon. Only take order till customer ID %s. Stop taking new customers now!" %(customer.get_cust_id()-1))
+                            if timelog:
+                                print("Shop will run out of raw material soon. Only take order till customer ID %s. Stop taking new customers now!" %(customer.get_cust_id()-1))
 
                 # avoid first cashier does most the work
                 shuffle(order_lis)
                 for ordering in order_lis: # check if any cashier is not busy
                     if (not ordering.busy()) and (not order_q.isEmpty()):
                         next_customer = order_q.dequeue()
-                        #print("cashier ", ordering.cashier.id, "is servering for you.")
                         icshop.update_total_s_ic(next_customer.s_icecream_num())
                         icshop.update_total_m_ic(next_customer.m_icecream_num())
                         icshop.update_total_l_ic(next_customer.l_icecream_num())
@@ -506,7 +565,10 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                         ordering.startNext(next_customer, currentSecond)
                     else:
                         ordering.tick(timelog)
+
+                    # when each ordering process is finished, add all ice-cream orders into prep_q
                     if ordering.finishOrder:
+                        # record total ice-cream number for the customer who has finished ordering
                         customer_num_ic[ordering.order_stats[0]] = ordering.order_stats[1]
                         ordering.finishOrder = False
                         for ic_order in ordering.order_indiv:
@@ -526,6 +588,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                         preparing.startNext(next_ic_order,currentSecond)
                     else:
                         preparing.tick()
+
+                    # By checking number of ice-cream in each dictionary, we will know whether the order for one customer is finished or not
                     if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
                         Preparing.count_ic_order[preparing.cust_id]=0
                         if timelog:
@@ -534,11 +598,14 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                         # waiting time for each customer
                         waitingtimes.append(currentSecond-preparing.arrival_time)
                         preparing.finish_ic_order = False
+
                 if timelog and currentSecond==Ice_creamShop.total_sec-900:
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
-                if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
-                        (icshop.is_enough_raw_material==False and order_q.isEmpty() and prep_q.isEmpty()):
+
+                #if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
+                        #(icshop.is_enough_raw_material == False and order_q.isEmpty() and prep_q.isEmpty()):
+                if (icshop.is_enough_raw_material == False and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
                         print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
                         \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
@@ -551,7 +618,7 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
             preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
             if not timelog:
                 outfile=open(filename+".csv","a")
-                #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream, #total_m_icecream, #total_l_icecream, #average ice_cream number,
+                # File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream, #total_m_icecream, #total_l_icecream, #average ice_cream number,
                 # #customers, avg_ordering_time, avg_preparing time, avg_waiting_time, profit
                 print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
                       (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
@@ -573,7 +640,7 @@ def new_customer(currentSecond:int)->bool:
     :return: whether a customer arrives (True or False)
     """
     if (10800 < currentSecond < 18000) or (25200 < currentSecond < 30600):
-        num = random.randrange(1,150) #peak-hour: customer/240 sec on average
+        num = random.randrange(1,240) #peak-hour: customer/240 sec on average
         if num == 20:
             return True
         else:
@@ -597,14 +664,7 @@ def seconds_to_hhmmss(second_number:int):
 
 
 if __name__ == '__main__':
-    # count=0
-    # for exp_chef_num in range (1,2):
-    #     for new_chef_num in range (0,1):
-    #         for exp_cashier_num in range(1,2):
-    #             for new_cashier_num in range(0,1):
-    #                 for i in range(1):
-    #                     # count+=1
-    #                     # print(count)
-    #                     simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,100000, "", True)
+    # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
+    random.seed(1)
     simulation(2,1,1,0, 5000, "", True)
 
