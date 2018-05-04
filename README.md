@@ -12,6 +12,7 @@ to rent a bigger place for customers to sit and eat. They decide to optimize the
 whether there is a relationship between experienced/inexperienced chef/cashier and waiting time.
 The waiting time is referred to average waiting time of customers per day.
 
+
 **Products and Constraints**
 
 The shop sells three kinds of sizes of ice-cream: small, medium and large. Raw materials for all of them are the same. Customers can order any number of ice-cream with different sizes as
@@ -20,10 +21,12 @@ will also take account of employee salaries into consideration. All employees ar
 has to adjust employee numbers. It is also important that there should be at least one chef(experienced/inexperienced) and one cashier(experienced/inexperienced). Otherwise, the simulation
 is not valid.
 
+
 **Employee structure**
 
 There are two kinds of employees in the shop: Cashier and Chef.
 Nitrogen ice-cream is different from traditional ice-cream which requires specific skills. Therefore, cashier and chef cannot switch roles when the shop is busy.
+
 
 **Operating process**
 
@@ -33,16 +36,19 @@ Chef will start to prepare ice-cream. There could be more than 1 chef. They will
 this customer generates 3 preparing orders. If there are 3 chef who are not busy then 3 of them will prepare these 3 orders at the same time. For fairness, if there are few customers coming in
 situation won't happen that one specific chef will always work. When preparing orders come and several chef are idle, then 1 of the chef will be selected randomly to work on it.
 
+
 **Operating hour**
 
 The shop operates from 12PM - 10PM. This is the real operating hour of Jarling icecream shop in Champaign. We use that in our simulation. The shop will stop taking orders at 9:45PM, and
 will finish the remaining orders. It happens that chef work after 10PM to process the remaining orders.
+
 
 **Analytical output**
 
 We simulate the situation in a time log format. In this way, people can see details about when the new customer comes in, when their orders are completed and when their ice-cream are made.
 An example of time log simulation can be viewed at [Analysis of simulation.ipynb] in this repository. We also give the owner a choice of whether to view the time log or have an output .csv
 file. There are sample output files in the repo, and our statistical analysis uses these outputs.
+
 
 ## Simulation's variables of uncertainty
 
@@ -60,6 +66,7 @@ file. There are sample output files in the repo, and our statistical analysis us
 
 ## Hypothesis or hypotheses before running the simulation:
 NULL Hypothesis: Average waiting time has no association with experienced chef, inexperienced chef, experienced cashier, inexperienced cashier.
+
 Alternative Hypothesis: At least one of the variables (experienced chef, inexperienced chef, experienced cashier, inexperienced cashier) has association with average waiting time.
 
 
@@ -67,16 +74,23 @@ Alternative Hypothesis: At least one of the variables (experienced chef, inexper
 We control the budget number, and run simulation program to generate data of numbers of experienced chef, inexperienced chef, experienced cashier, inexperienced cashier and waiting time.
 We fit a linear regression model based on findings of data exploration, and adjust model according to statistics output.
 
-The conclusion is that experienced chef, inexperienced chef has association with average waiting time while experienced cashier, inexperienced cashier don't have significant association
+**Conclusion**
+
+Experienced chef, inexperienced chef has association with average waiting time while experienced cashier, inexperienced cashier don't have significant association
 with average waiting time given 95% confidence interval.
 
 ## Instructions on how to use the program:
  - Simulation: [icshop_simulation.py]
-                This will show time log in console. Feel free to try other parameters.
+
+                This will show time log in console. Feel free to try different parameters.
                 simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget, filename="default", timelog = True)
+
  - Data exploration: [Analysis of simulation.ipynb]
+
                      Demo of time log simulation; plots of waiting time and different combinations of employees; plots of profit and different combinations of employees
+
  - Data analysis: [Data_Analysis.md]
+
                   Summary/graph statistics -> fit linear regression model -> robustness of the model -> interpret model -> come to conclusion
 
 ## All Sources Used:
