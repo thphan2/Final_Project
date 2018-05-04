@@ -18,7 +18,7 @@ load data
 
 ``` r
 library(readr)
-fulldata <- read_csv("sample.csv",col_names = FALSE)
+fulldata <- read_csv("data/sample.csv",col_names = FALSE)
 ```
 
     ## Parsed with column specification:
@@ -122,7 +122,7 @@ cor(data[,c(5:13)])  # exclude discrete variables
     ## ic_per_cust                   0.008887213   0.01276584  1.000000000
 
 ``` r
-pairs(data[,c(5:13)],pch = ".", main = "Pairwise scatter plots")
+pairs(data[,c(5,6,7,12,13)],pch = ".", main = "Pairwise scatter plots")
 ```
 
 ![](Data%20Analysis_figs/Data%20Analysis-unnamed-chunk-4-1.png)
@@ -190,9 +190,7 @@ par(mfrow = c(2,2))
 plot(mod1)
 ```
 
-![](Data%20Analysis_figs/Data%20Analysis-unnamed-chunk-6-1.png) 
-### Diagnostic 
-From diagnostic plot, we can tell mod1 violates some assumptions of linear regression model. Upper left plot shows the model is not linear, Q-Q plot indicates it violates normality and lower left plot shows mod1 doesn't have constant variance in errors. Lower right plot suggests there are outliers in data which conforms our finding in the previous plot regrding average waiting time.
+![](Data%20Analysis_figs/Data%20Analysis-unnamed-chunk-6-1.png) \#\#\# Diagnostic From diagnostic plot, we can tell mod1 violates some assumptions of linear regression model. Upper left plot shows the model is not linear, Q-Q plot indicates it violates normality and lower left plot shows mod1 doesn't have constant variance in errors. Lower right plot suggests there are outliers in data which conforms our finding in the previous plot regrding average waiting time.
 
 Next we will do transformation and exclude outliers before refitting the model.
 
@@ -281,6 +279,6 @@ Summary
 
 NULL hypothesis is rejected as p-value of F-statistics is less than 5% (assume 95% confidence interval), meaning at least one variable indicated in the begining of the report is different from 0.
 
-Our final model: waiting time^(-0.5) = constant + (1.188e-01)*`experienced chef` + (5.108e-02)*`new chef` + (-5.022e-04)*`small icecream` + (-7.734e-04)*`medium icecream` + (-1.037e-03)\*`large icecream`
+Our final model: *w**a**i**t**i**n**g**t**i**m**e*<sup>−1/2</sup> = constant + (1.187*e* − 01)experienced chef + (5.100*e* − 02)new chef + (−5.054*e* − 04)small icecream + (−7.821*e* − 04)medium icecream + (−1.046*e* − 03)large icecream
 
-The result matches what we've analyzed in jupyter notebook under the same repository(Analysis of simulation.ipynb), we find out that experience level is not very important on how the cashier performs while experience is indeed important in hiring chef.
+The result matches what we've analyzed in [jupyter notebook](https://github.com/sayaaoi/Final_Project/blob/master/Analysis%20of%20simulation.ipynb), we find out that experience level is not very important on how the cashier performs while experience is indeed important in hiring chef.

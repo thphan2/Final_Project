@@ -221,7 +221,7 @@ class Ice_creamShop:
         self.price_S = 4
         self.price_M = 6
         self.price_L = 8
-        self.raw_material_cost = 200
+        self.raw_material_cost = 700
         self.is_enough_raw_material = True
         self.chef_list, self.cashier_list = [],[]
         self.total_s_ic=0
@@ -607,15 +607,12 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 if timelog and currentSecond==Ice_creamShop.total_sec-900:
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
-                #print("Order q:",order_q.items)
-                #print("Prep q:", prep_q.items)
-                #if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
-                        #(icshop.is_enough_raw_material == False and order_q.isEmpty() and prep_q.isEmpty()):
-                if (icshop.is_enough_raw_material == False and finish_status==True and order_q.isEmpty() and prep_q.isEmpty()):
+                if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
+                    (icshop.is_enough_raw_material == False and finish_status==True and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
                         print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
                         \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
-                                  %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),\
+                                  %(seconds_to_hhmmss(currentSecond), len(waitingtimes),round((sum(waitingtimes)/len(waitingtimes))/60),
                                     "{:,}".format(revenue),"{:,}".format(revenue - icshop.total_variable_cost())))
                         print("Icecream Shop closes for the day. See you again!")
                     break
@@ -627,8 +624,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 # File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream, #total_m_icecream, #total_l_icecream, #average ice_cream number,
                 # #customers, avg_ordering_time, avg_preparing time, avg_waiting_time, profit
                 print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
-                      (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
-                       len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),\
+                      (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,
+                       len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),
                        round((sum(waitingtimes)/len(waitingtimes))/60),revenue - icshop.total_variable_cost()),file=outfile)
                 outfile.close()
         else:
@@ -671,6 +668,5 @@ def seconds_to_hhmmss(second_number:int):
 
 if __name__ == '__main__':
     # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
-    random.seed(1)
     simulation(2,1,1,0, 5000, "", True)
 
