@@ -1,4 +1,5 @@
 # Title: Nitrogen Ice-cream Shop Monte Carlo Simulation
+![alt text](https://torontocitykey.com/wp-content/uploads/2017/11/Labsense-1.jpg)
 
 ## Team Members:
 Yuejun Wu, Thuong Phan
@@ -24,6 +25,8 @@ is not valid.
 ### Employee structure
 There are two kinds of employees in the shop: Cashier and Chef.
 Nitrogen ice-cream is different from traditional ice-cream which requires specific skills. Therefore, cashier and chef cannot switch roles when the shop is busy.
+
+![alt text](http://images.honestcooking.com/wp-content/uploads/2012/06/Milk-Solid-Ice-Cream-Bangkok-495x316.jpg)
 
 
 ### Operating process
@@ -76,6 +79,7 @@ file. There are sample output files in the repo, and our statistical analysis us
 
 *Alternative Hypothesis*: At least one of the variables (the number of experienced chef, the number of inexperienced chef, the number of experienced cashier, the number of inexperienced cashier) has association with average waiting time.
 
+![alt text](https://github.com/sayaaoi/Final_Project/blob/master/data/waiting%20line.png)
 
 ## Analytical Summary of our findings:
 We control the budget number, and run simulation program to generate data of numbers of experienced chef, inexperienced chef, experienced cashier, inexperienced cashier and waiting time.
