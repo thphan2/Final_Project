@@ -1,12 +1,71 @@
+"""
+Add new customers
+>>> cu1=Customer(1,120)
+>>> has_raw_material(cu1,0)
+False
+>>> has_raw_material(cu1,1000000)
+True
+
+Add new cashiers
+>>> ca1=Cashier(1,True)
+>>> ca2=Cashier(2,False)
+>>> ca1.get_salary()
+12
+>>> ca2.get_salary()
+10
+
+Add new chefs
+>>> ch3=Chef(3,True)
+>>> ch4=Chef(4,False)
+>>> ch3.get_salary()
+17
+>>> ch4.get_salary()
+14
+
+Icecream shop test
+>>> shop=Ice_creamShop(1,2,1,0)
+>>> shop.total_variable_cost()
+570.0
+>>> shop.is_within_budget(500)
+False
+>>> shop.is_within_budget(1500)
+True
+>>> shop.update_total_s_ic(2)
+>>> shop.total_s_ic
+2
+>>> shop.update_total_m_ic(9)
+>>> shop.total_m_ic
+9
+>>> shop.update_total_l_ic(5)
+>>> shop.total_l_ic
+5
+>>> shop.update_ic_num(shop.total_s_ic,shop.total_m_ic,shop.total_l_ic)
+>>> shop.total_ic_num
+25.5
+
+"""
+
 import random
 from random import shuffle
 import time
 from collections import Counter
 import sys
 
+
 class Customer:
     # cust_order example: {'S':1, 'M':2 'L':1}
-    def __init__(self, cust_id, arrival_time):
+    def __init__(self, cust_id:int, arrival_time:int):
+        """
+        Customer visits the shop to buy icecream.
+        A customer requires below information:
+        - customer id to identify the customer (cust_id)
+        - arrival time (arrival_time)
+        - customer order containing the amount of icecream in each size he wants to buy (cust_order: dict)
+        - amount of time to make the order (order_time)
+        - amount of time to think about what to order (thinking_time)
+        :param cust_id: customer id
+        :param arrival_time: the second the customer arrives after the shop opens
+        """
         self._cust_id = cust_id
         self._cust_order = {'S': GaussianDiscrete(1,1,1,5).random(), 'M': GaussianDiscrete(1,1,0,5).random(), 'L':GaussianDiscrete(2,1,0,5).random()}
         self._arrival_time = arrival_time
@@ -38,26 +97,46 @@ class Customer:
         return self._thinking_time
 
     def get_serving_time(self):
+        """
+        Get the total amount of time for making order which equals the amount of time for ordering + thinking
+        """
         return self._order_time+self._thinking_time
 
-    def order_list(self):
+    def order_list(self)->list:
+        """
+        Convert the order dictionary of the customer to a list of icecreams
+        """
         order_list = []
         for size in self._cust_order:
             for num in range(self._cust_order[size]):
                 order_list.append((self._cust_id,size,self.get_arrivaltime()))
         return order_list
 
+
 class Employee:
     # base class for all kinds of employee
     def __init__(self, id, is_experienced:bool):
+        """
+        Employee of the ice cream shop
+        :param id: employee id to identify an employee
+        :param is_experienced: whether the employee has any experience (True or False)
+
+        """
         self.id = id
         self.is_experienced = is_experienced
 
     def get_salary(self):
         pass
 
+
 class Cashier(Employee):
-    def __init__(self, id, is_experienced:bool):
+    def __init__(self, id:int, is_experienced:bool):
+        """
+        Cashier is the person who takes order from customers.
+        Each cashier requires data about his ID, experience level, salary based on the experience and the required time to process an order
+        :param id: cashier id to identify an cashier, automatically assigned when a cashier is added
+        :param is_experienced: whether the cashier has any experience (True or False)
+        """
         Employee.__init__(self,id,is_experienced)
         if is_experienced:
             self._salary = 12  #$12/hr
@@ -67,13 +146,26 @@ class Cashier(Employee):
             self._process_time = NormalDist(5,1,2,15).random()
 
     def get_process_time(self):
+        """
+        Return the amount of time a cashier needs to take order from a customer
+        """
         return self._process_time
 
     def get_salary(self):
+        """
+        Return the salary of a cashier
+        """
         return self._salary
+
 
 class Chef(Employee):
     def __init__(self, id, is_experienced:bool):
+        """
+        Chef is the person who makes icecream for customers
+        Each chef requires info about his ID, experience level, salary based on the experience and the required time to process an icecream based on the icecream size
+        :param id: chef id to identify an chef, automatically assigned when a chef is added
+        :param is_experienced: whether the chef has any experience (True or False)
+        """
         Employee.__init__(self, id, is_experienced)
         if is_experienced:
             self._salary = 17  #$17/hr
@@ -83,9 +175,17 @@ class Chef(Employee):
             self._prep_time = NormalDist(120, 5, 70, 180).random()
 
     def get_salary(self):
+        """
+        Return the salary of a chef
+        """
         return self._salary
 
     def get_prep_time(self, size:str):
+        """
+        Return the preparation time for an icecream based on its size
+        :param size: size of an icecream (S, M or L)
+        :return: preparation time
+        """
         if size == "S":
             return self._prep_time
         elif size == "M":
@@ -93,15 +193,36 @@ class Chef(Employee):
         else:
             return self._prep_time*2
 
+
 class Ice_creamShop:
     # shop opens from 12PM - 10PM (10 hours) 10hours = 36000 sec
     total_sec = 36000
-    def __init__(self,exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num):
+    def __init__(self,exp_chef_num:int,new_chef_num:int,exp_cashier_num:int,new_cashier_num:int):
+        """
+        An icecream shop requires information about
+        - number of experienced and non-experienced chefs it has for a day (exp_chef_num, new_chef_num)
+        - number of experienced and non-experienced cashiers it has for a day (exp_cashier_num, new_cashier_num)
+        - icecream price for different sizes S, M and L (price_S, price_M, price_L)
+        - the current amount of raw material to make icecream (raw_material_cost)
+        - a check variable whether it has enough raw material (is_enough_raw_material)
+        - list of chefs and cashiers it has (chef_list, cashier_list)
+        - total number of icecream size S, M and L it has sold for the day (total_s_ic, total_m_ic, total_l_ic)
+        - total number of icecream units it has sold for the day (total_ic_num)
+        :param exp_chef_num: number of experienced chefs
+        :param new_chef_num: number of non-experienced chefs
+        :param exp_cashier_num: number of experienced cashiers
+        :param new_cashier_num: number of non-experienced cashiers
+        """
         self.price_S = 4
         self.price_M = 6
         self.price_L = 8
         self.raw_material_cost = 700
+        self.is_enough_raw_material = True
         self.chef_list, self.cashier_list = [],[]
+        self.total_s_ic=0
+        self.total_m_ic=0
+        self.total_l_ic=0
+        self.total_ic_num = 0
 
         for i in range(new_chef_num):
             self.chef_list.append(Chef(i+1,is_experienced=False))
@@ -112,25 +233,45 @@ class Ice_creamShop:
         for i in range(exp_cashier_num):
             self.cashier_list.append(Cashier(new_cashier_num+i+1,is_experienced=True))
 
-        self.total_s_ic=0
-        self.total_m_ic=0
-        self.total_l_ic=0
-        self.total_ic_num = 0
-
-    def update_total_s_ic(self,s_ic_num):
+    def update_total_s_ic(self,s_ic_num:int)->int:
+        """
+        Update the total icecream size S the shop has sold so far
+        :param s_ic_num: number of icecream size S ordered by a customer
+        :return: None
+        """
         self.total_s_ic=self.total_s_ic+s_ic_num
 
-    def update_total_m_ic(self,m_ic_num):
+    def update_total_m_ic(self,m_ic_num:int)->int:
+        """
+        Update the total icecream size M the shop has sold so far
+        :param m_ic_num: number of icecream size M ordered by a customer
+        :return: None
+        """
         self.total_m_ic=self.total_m_ic+m_ic_num
 
-    def update_total_l_ic(self,l_ic_num):
+    def update_total_l_ic(self,l_ic_num:int)->int:
+        """
+        Update the total icecream size L the shop has sold so far
+        :param l_ic_num: number of icecream size L ordered by a customer
+        :return: None
+        """
         self.total_l_ic=self.total_l_ic+l_ic_num
 
-    def update_ic_num(self, s_ic, m_ic, l_ic):
-        # 1 medium ice_cream ~ 1.5 small ice_cream; 1 large ice_cream ~ 2 small ice_cream in terms of quantity/raw material
+    def update_ic_num(self, s_ic:int, m_ic:int, l_ic:int):
+        """
+        Convert icecreams of different size into icecream units
+        1 medium ice_cream ~ 1.5 small ice_cream; 1 large ice_cream ~ 2 small ice_cream in terms of quantity/raw material
+        :param s_ic: number of S size icecream
+        :param m_ic: number of M size icecream
+        :param l_ic: number of L size icecream
+        :return: None
+        """
         self.total_ic_num = (s_ic + m_ic*1.5 + l_ic*2)
 
-    def total_variable_cost(self):
+    def total_variable_cost(self)->float:
+        """
+        Return the total variable cost for paying salary to employees
+        """
         chef_cost, cashier_cost = 0, 0
         for chef in self.chef_list:
             chef_cost += chef.get_salary()
@@ -138,8 +279,14 @@ class Ice_creamShop:
             cashier_cost += cashier.get_salary()
         return (chef_cost + cashier_cost)*(Ice_creamShop.total_sec/3600)
 
-    def is_within_budget(self,budget):
+    def is_within_budget(self,budget)->bool:
+        """
+        Check whether the variable cost is within the shop's budget
+        :param budget: the budget set by the shop for variable cost
+        :return: whether the variable cost is within the budget (True or False)
+        """
         return Ice_creamShop.total_variable_cost(self) <= budget - self.raw_material_cost
+
 
 class Ordering():
     def __init__(self, cashier: Cashier):
@@ -147,6 +294,9 @@ class Ordering():
         self.time_remaining = 0
         self.cashier = cashier
         self.finishOrder = False
+        self.order_indiv=[]
+        self.order_stats=((),)
+        self.order_complete_time=0
 
     def busy(self):
         if self.curr_customer != None:
@@ -168,7 +318,6 @@ class Ordering():
         self.order_indiv = self.curr_customer.order_list()
         # total number of ice-cream the customer orders
         self.order_stats = (self.curr_customer.get_cust_id(), len(self.curr_customer.order_list()))
-        #print("order stats: ",self.order_stats)
         self.time_remaining = new_customer.get_serving_time() + self.cashier.get_process_time()
         self.order_complete_time = order_start_time + self.time_remaining
 
@@ -182,7 +331,7 @@ class Preparing:
         self.finish_ic_order = False
 
     def busy(self):
-        if self.curr_order != None:
+        if self.curr_order is not None:
             return True
         else:
             return False
@@ -193,25 +342,115 @@ class Preparing:
             if self.time_remaining <= 0:
                 self.finish_ic_order = True
                 Preparing.count_ic_order[self.curr_order[0]] += 1
-                #print(Preparing.count_ic_order)
                 self.arrival_time = self.curr_order[-1]
                 self.curr_order = None
 
     def startNext(self, new_order, prepare_start_time):
         self.curr_order = new_order
         self.cust_id = self.curr_order[0]
-        #print("cust id_startnext: ", self.cust_id)
         self.time_remaining = self.chef.get_prep_time(new_order[1])  #example of new_order: (cust_id, "S", arrival time)
         self.prepare_end_time = prepare_start_time + self.time_remaining
 
-def has_raw_material(customer, raw_material_cost):
-    # if customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost:
-    #     raw_material_cost -= customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2
-    #     return True
-    # else:
-    #     raw_material_cost -= customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2
-    #     return False
+
+class RandomDist():
+    '''
+    RandomDist is a base abstract class to build a Random distribution.
+    This class contains an abstract method for building a random generator
+    Inherited class must implement this method
+    '''
+
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    def random(self):
+        """
+        This class is an abstract method for implementation class
+        should return a random value
+        :return:
+        """
+        pass
+
+
+class NormalDist(RandomDist):
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random normal distribution parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        RandomDist.__init__(self, "Normal")
+        self._mu = mu
+        self._sigma = sigma
+        self._low = low
+        self._high = high
+
+    def random(self):
+        """
+        This will return a random gaussian generator by checking the low value and highest value
+        :return:
+        """
+        while True:
+            x = random.gauss(self._mu, self._sigma)
+            if x >= self._low and x <= self._high:
+                return x
+
+
+class GaussianDiscrete(NormalDist):
+    """
+    A random Gaussian Discrete generator
+    This will include all the feature that gaussian has but will return a discrete value using round
+    """
+
+    def __init__(self, mu: float, sigma: float, low: float, high: float):
+        """
+        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
+        :param mu: mean, in which the normal gaussian will have most distribution
+        :param sigma: a standard deviation for a random gaussian parameter
+        :param low: the lowest value this random generator must provide
+        :param high: the highest value this random generator must provide
+        """
+        NormalDist.__init__(self, mu, sigma, low, high)
+        RandomDist.__init__(self, "GaussianDiscrete")
+
+    def random(self):
+        return round(NormalDist.random(self))
+
+
+class Queue:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def enqueue(self, item):
+        self.items.insert(0,item)
+
+    def dequeue(self):
+        return self.items.pop()
+
+    def size(self):
+        return len(self.items)
+
+    def getItem(self,index):
+        return self.items[index]
+
+
+def has_raw_material(customer:Customer, raw_material_cost:float)->bool:
+    """
+    check whether the shop has enough raw material for the customer's icecream order
+    :param customer: Customer
+    :param raw_material_cost: the remaining raw material the shop has currently
+    :return: bool
+    """
     return customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost
+
 
 def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget, filename="default", timelog = True):
     if (exp_chef_num == new_chef_num == 0):
@@ -239,7 +478,7 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
             revenue = 0
             for currentSecond in range(sys.maxsize):
                 # shop stops taking new order at 9:45pm
-                if currentSecond<Ice_creamShop.total_sec-900 and icshop.raw_material_cost >= 0:
+                if currentSecond<Ice_creamShop.total_sec-900 and icshop.is_enough_raw_material==True :
                     if new_customer(currentSecond):
                         customer = Customer(cust_id + 1, currentSecond)
                         cust_id += 1
@@ -248,9 +487,11 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                             order_q.enqueue(customer)
                             if timelog:
                                 print("+++ %s: New customer! Customer %s arrives." % (seconds_to_hhmmss(currentSecond), customer.get_cust_id()))
+                            icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
+
                         else:
-                            print("Running out of raw material. Stop taking orders now. Process the remaining orders...")
-                        icshop.raw_material_cost -= (customer.s_icecream_num() + customer.m_icecream_num() * 1.5 + customer.l_icecream_num() * 2)
+                            icshop.is_enough_raw_material=False
+                            print("Shop will run out of raw material soon. Only take order till customer ID %s. Stop taking new customers now!" %(customer.get_cust_id()-1))
 
                 # avoid first cashier does most the work
                 shuffle(order_lis)
@@ -282,13 +523,10 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 for preparing in prepare_lis:  # check if any chef is not busy
                     if (not preparing.busy()) and (not prep_q.isEmpty()):
                         next_ic_order = prep_q.dequeue()
-                        #print("q size after dequeue: ",prep_q.size(),"cust id: ", next_ic_order[0])
                         preparing.startNext(next_ic_order,currentSecond)
                     else:
                         preparing.tick()
                     if preparing.finish_ic_order and (Preparing.count_ic_order[preparing.cust_id] == customer_num_ic[preparing.cust_id]):
-                        #print("cust_id:",preparing.cust_id)
-                        #print("customer_num_ic[preparing.cust_id]",customer_num_ic[preparing.cust_id])
                         Preparing.count_ic_order[preparing.cust_id]=0
                         if timelog:
                             print("*** %s: Ice-cream ready! Customer %s's icecream order is completed!" % (
@@ -300,7 +538,7 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." %seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
                 if (currentSecond>=Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
-                        (icshop.raw_material_cost<=0 and order_q.isEmpty() and prep_q.isEmpty()):
+                        (icshop.is_enough_raw_material==False and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
                         print("%s: All orders completed. \nThere are %s customers coming in today. Average waiting time: %s minutes.\
                         \nTotal revenue is: $%s dollars. Today's profit is: $%s" \
@@ -313,7 +551,8 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
             preparing_waitingtimes = [i - j for i, j in zip(waitingtimes, ordering_waitingtimes)]
             if not timelog:
                 outfile=open(filename+".csv","a")
-                #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream,#total_m_icecream,#total_l_icecream,#average ice_cream number,#customers,avg_waiting_time, profit
+                #File header: #exp_chef,#new_chef,#exp_cashier,#new_cashier,#total_s_icecream, #total_m_icecream, #total_l_icecream, #average ice_cream number,
+                # #customers, avg_ordering_time, avg_preparing time, avg_waiting_time, profit
                 print("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s" %\
                       (exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,icshop.total_s_ic,icshop.total_m_ic,icshop.total_l_ic,icshop.total_ic_num,\
                        len(waitingtimes),round((sum(ordering_waitingtimes)/len(waitingtimes))/60),round((sum(preparing_waitingtimes)/len(waitingtimes))/60),\
@@ -324,10 +563,17 @@ def simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num, budget
                 print("Budget is not enough. Please adjust employee numbers.")
 
 
-# More customers come from 3PM - 5PM and 7PM - 8:30PM
-def new_customer(currentSecond):
+def new_customer(currentSecond:int)->bool:
+    """
+    Randomly generate a customer coming to the icecream shop during peak hour and non-peak hour
+    Assume that more customers come from 3PM - 5PM and 7PM - 8:30PM
+    During peak hour, every 240 seconds (4 mins) there is a customer
+    During non-peak hour, every 1200 seconds (20 mins) there is a customer
+    :param currentSecond: the current second after the shop opens
+    :return: whether a customer arrives (True or False)
+    """
     if (10800 < currentSecond < 18000) or (25200 < currentSecond < 30600):
-        num = random.randrange(1,240) #peak-hour: customer/240 sec on average
+        num = random.randrange(1,150) #peak-hour: customer/240 sec on average
         if num == 20:
             return True
         else:
@@ -339,95 +585,16 @@ def new_customer(currentSecond):
         else:
             return False
 
-class RandomDist():
-    '''
-    RandomDist is a base abstract class to build a Random distribution.
-    This class contains an abstract method for building a random generator
-    Inherited class must implement this method
-    '''
 
-    def __init__(self, name):
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
-    def random(self):
-        """
-        This class is an abstract method for implementation class
-        should return a random value
-        :return:
-        """
-        pass
-
-class NormalDist(RandomDist):
-    def __init__(self, mu: float, sigma: float, low: float, high: float):
-        """
-        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
-        :param mu: mean, in which the normal gaussian will have most distribution
-        :param sigma: a standard deviation for a random normal distribution parameter
-        :param low: the lowest value this random generator must provide
-        :param high: the highest value this random generator must provide
-        """
-        RandomDist.__init__(self, "Normal")
-        self._mu = mu
-        self._sigma = sigma
-        self._low = low
-        self._high = high
-
-    def random(self):
-        """
-        This will return a random gaussian generator by checking the low value and highest value
-        :return:
-        """
-        while True:
-            x = random.gauss(self._mu, self._sigma)
-            if x >= self._low and x <= self._high:
-                return x
-
-class GaussianDiscrete(NormalDist):
+def seconds_to_hhmmss(second_number:int):
     """
-    A random Gaussian Discrete generator
-    This will include all the feature that gaussian has but will return a discrete value using round
+    convert the second number to current date time with format HH:MM:SS(AM/PM)
+    Note that time starts at 12pm (12*3600 = 43200) as the shop opens
+    >>> seconds_to_hhmmss(240)
+    '12:04:00PM'
     """
-
-    def __init__(self, mu: float, sigma: float, low: float, high: float):
-        """
-        To use this class we must provide mu (mean), sigma (standard deviation), low value, and high value
-        :param mu: mean, in which the normal gaussian will have most distribution
-        :param sigma: a standard deviation for a random gaussian parameter
-        :param low: the lowest value this random generator must provide
-        :param high: the highest value this random generator must provide
-        """
-        NormalDist.__init__(self, mu, sigma, low, high)
-        RandomDist.__init__(self, "GaussianDiscrete")
-
-    def random(self):
-        return round(NormalDist.random(self))
-
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def enqueue(self, item):
-        self.items.insert(0,item)
-
-    def dequeue(self):
-        return self.items.pop()
-
-    def size(self):
-        return len(self.items)
-
-    def getItem(self,index):
-        return self.items[index]
-
-def seconds_to_hhmmss(second_number):
-    # time starts at 12pm (12*3600 = 43200) as the shop opens
     return time.strftime('%H:%M:%S%p', time.gmtime(43200+second_number))
+
 
 if __name__ == '__main__':
     # count=0
@@ -438,6 +605,6 @@ if __name__ == '__main__':
     #                 for i in range(1):
     #                     # count+=1
     #                     # print(count)
-    #                     simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,1000, "", True)
-    simulation(0,2,0,0, 5000, "", True)
+    #                     simulation(exp_chef_num,new_chef_num,exp_cashier_num,new_cashier_num,100000, "", True)
+    simulation(2,1,1,0, 5000, "", True)
 

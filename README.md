@@ -94,7 +94,9 @@ with average waiting time given 95% confidence interval.
                   Summary/graph statistics -> fit linear regression model -> robustness of the model -> interpret model -> come to conclusion
 
 ## All Sources Used:
-Miller & Ranum: Problem Solving with Algorithms and Data Structures Using Python, Section 3.4, pages 106-119
-https://github.com/nikolausn/Final-project
+- Miller & Ranum: Problem Solving with Algorithms and Data Structures Using Python, Section 3.4, pages 106-119
+- https://github.com/nikolausn/Final-project
+- https://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot?
+
 
 
