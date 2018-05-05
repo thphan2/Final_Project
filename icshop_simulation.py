@@ -691,7 +691,7 @@ def simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, bud
 
 if __name__ == '__main__':
     # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
-    # with budget of 5000$ and raw material cost for 100 icecream units
+    # with budget of $5000 and $300 raw material cost
     simulation(1, 1, 1, 0, 5000, 300, "", True)
 
     # uncomment and run below codes to generate "sample.csv" file for data analysis
