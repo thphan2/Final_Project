@@ -687,15 +687,15 @@ def seconds_to_hhmmss(second_number: int):
 if __name__ == '__main__':
     # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
     # with budget of 5000$ and raw material cost for 100 icecream units
-    #simulation(1, 1, 1, 0, 5000,100, "", True)
+    simulation(1, 1, 1, 0, 5000,300, "", True)
 
     # uncomment and run below codes to generate "sample.csv" file for data analysis
     # by iterating over number of experienced, non-experienced chefs and experienced, non-experienced cashiers
     # and setting a big enough budget so that all combinations will be within the budget
     # ====Start of codes====
-    for exp_chef_num in range(1, 3):
-        for new_chef_num in range(0, 2):
-            for exp_cashier_num in range(1, 3):
-                for new_cashier_num in range(0, 2):
-                    for i in range(150):
-                        simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, 100000, 8000, "sample", False)
+    #for exp_chef_num in range(1, 3):
+    #    for new_chef_num in range(0, 2):
+    #        for exp_cashier_num in range(1, 3):
+    #            for new_cashier_num in range(0, 2):
+    #                for i in range(150):
+    #                    simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, 100000, 8000, "sample", False)
