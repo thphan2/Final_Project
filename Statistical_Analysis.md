@@ -4,14 +4,14 @@ Question of interest
 
 For owners of a small ice-cream shop, it's crucial to try to maximize customer satisfactory. Customer detention is key to the survival of small business, and customer satisfactory is related to customer detention rate. In this report, we use customer waiting time per day as the proxy to customer satisfactory. Our assumption is the number of different experienced level chef and cashier, along with average number of ice-cream per customer, number of small/medium/large ice-cream will have impact on waiting time.
 
-NULL Hypothesis: coefficient of (the number of different experienced level chef and cashier, average number of ice-cream per customer, number of small/medium/large ice-cream) are equal to 0.
+NULL Hypothesis: Average waiting time has no association with the number of experienced chef, the number of inexperienced chef, the number of experienced cashier, the number of inexperienced cashier, the number of small/medium/large ice-cream and average number of ice-cream per customer.
 
-Alternative Hypothesis: At least one of the coefficients is different from 0.
+Alternative Hypothesis: At least one of the variables (the number of experienced chef, the number of inexperienced chef, the number of experienced cashier, the number of inexperienced cashier, the number of small/medium/large ice-cream and average number of ice-cream per customer) has association with average waiting time.
 
 Data
 ====
 
-We generate thousands of data through simulation program under the same repository (icshop\_simulation.py).
+We generate data through [simulation program](https://github.com/sayaaoi/Final_Project/blob/master/icshop_simulation.py).
 
 load data
 ---------
@@ -281,4 +281,4 @@ NULL hypothesis is rejected as p-value of F-statistics is less than 5% (assume 9
 
 Our final model: *w**a**i**t**i**n**g**t**i**m**e*<sup>−1/2</sup> = constant + (1.187*e* − 01)experienced chef + (5.100*e* − 02)new chef + (−5.054*e* − 04)small icecream + (−7.821*e* − 04)medium icecream + (−1.046*e* − 03)large icecream
 
-The result matches what we've analyzed in [jupyter notebook](https://github.com/sayaaoi/Final_Project/blob/master/Analysis%20of%20simulation.ipynb), we find out that experience level is not very important on how the cashier performs while experience is indeed important in hiring chef.
+The result matches what we've analyzed in [jupyter notebook](https://github.com/sayaaoi/Final_Project/blob/master/Analysis%20of%20simulation.ipynb). We find out that experience level is not very important on how the cashier performs while experience is indeed important in hiring chef.

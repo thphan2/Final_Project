@@ -9,17 +9,20 @@ Yuejun Wu, Thuong Phan
 We simulate one day operation of a nitrogen ice-cream shop in summer. This is a mom&pop style small shop, which means customer satisfactory is crucial to its survival.
 Recently, some customers complain that waiting time is too long, and they are unhappy to wait in the sun especially in summer. This ice-cream shop doesn't have extra cash flow
 to rent a bigger place for customers to sit and eat. There fore, they decide to optimize the combination of employees to minimize the waiting time. But first they would like to find out
-**whether there is a relationship between experienced/inexperienced chef/cashier and waiting time**.
+**whether there is a relationship between number of experienced/inexperienced chef/cashier and waiting time**.
 The waiting time is referred to average waiting time of customers per day.
 
 
 ### Products and Constraints
-The shop sells three kinds of sizes of ice-cream: small, medium and large. Raw materials for all of them are the same. Customers can order any number of ice-cream with different sizes as
+The shop sells three sizes of ice-cream: small, medium and large. Raw materials for all of them are the same. Ice-cream in the shop are only differ in size. 
+We assume the cost of a small size ice-cream is 1 dollar, 1.5 dollars for a medium size ice-cream and 2 dollars for a large size ice-cream based on 
+unit equivalency among different sizes. (We assume 1 medium ice_cream ~ 1.5 small ice_cream in unit; 
+1 large ice_cream ~ 2 small ice_cream in unit) Customers can order any number of ice-cream with different sizes as
 long as the raw material in the shop is enough. When the shop runs out of raw material it will stop taking new orders but will complete the orders that have been ordered before. 
 
 The operation simulation also takes employee salaries into consideration. All employees are hourly paid, and if the salary expense for employees is larger than one day budget of the shop, the shop
-has to adjust employee numbers before running simulation. It is also important that there should be at least one chef either experienced or inexperienced and one cashier either experienced or inexperienced. Otherwise, the simulation
-is not valid.
+has to adjust employee numbers before running simulation. It is also important that there should be at least one chef either experienced or inexperienced and one cashier either experienced or inexperienced in the shop. 
+Otherwise, the simulation is not valid.
 
 
 ### Employee structure
@@ -44,7 +47,7 @@ will finish the remaining orders. It happens that chef work after 10PM to proces
 
 
 ### Analytical output
-We simulate the situation in a time log format. In this way, people can see details about when the new customer comes in, when their orders are completed and when their ice-cream are made.
+We simulate the situation in time log format. In this way, people can see details about when the new customer comes in, when their orders are completed and when their ice-cream are made.
 An example of time log simulation can be viewed at [Analysis of Simulation](Analysis%20of%20simulation.ipynb). We also give the owner a choice of whether to view the time log or have an output .csv
 file. There are sample output files in the repo, and our statistical analysis uses these outputs.
 
@@ -87,13 +90,15 @@ We fit a linear regression model based on findings of data exploration, and adju
 
 ### Conclusion
 
-Experienced chef, inexperienced chef has association with average waiting time while experienced cashier, inexperienced cashier don't have significant association
+Number of experienced chef, inexperienced chef has association with average waiting time while experienced cashier, inexperienced cashier don't have significant association
 with average waiting time given 95% confidence interval.
 
 ## Instructions on how to use the program:
- - *Simulation*: Run [Simulation Program](icshop_simulation.py)   
+ - *Simulation*: Put [Customer](Customer.py), [Employee](Employee.py), [Distribution](Distribution.py), [Operation](Operation.py) and [icshop_simulation](icshop_simulation.py) 
+ under the same folder. Then run [icshop_simulation](icshop_simulation.py)   
           
      It will show time log in console. Feel free to try different parameters.
+     Parameters are: number of experienced chef, number of inexperienced chef, number of experienced cashier, number of inexperienced cashier, budget, raw material cost, filename, timelog(boolean) 
 
  - *Data exploration*: [Data Visualization](Analysis%20of%20simulation.ipynb)   
           
