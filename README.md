@@ -94,7 +94,8 @@ Number of experienced chef, inexperienced chef has association with average wait
 with average waiting time given 95% confidence interval.
 
 ## Instructions on how to use the program:
- - *Simulation*: Run [Simulation Program](icshop_simulation.py)   
+ - *Simulation*: Put [Customer](Customer.py), [Employee](Employee.py), [Distribution](Distribution.py), [Operation](Operation.py) and [icshop_simulation](icshop_simulation.py) 
+ under the same folder. Then run [icshop_simulation](icshop_simulation.py)   
           
      It will show time log in console. Feel free to try different parameters.
      Parameters are: number of experienced chef, number of inexperienced chef, number of experienced cashier, number of inexperienced cashier, budget, raw material cost, filename, timelog(boolean) 
