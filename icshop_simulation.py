@@ -28,7 +28,7 @@ Add new chefs
 14
 
 Ice-cream shop test
->>> shop=Ice_creamShop(1,2,1,0)
+>>> shop=Ice_creamShop(1,2,1,0,100)
 >>> shop.total_variable_cost()
 570.0
 >>> shop.is_within_budget(500)
@@ -205,13 +205,15 @@ class Ice_creamShop:
     # shop opens from 12PM - 10PM (10 hours) 10hours = 36000 sec
     total_sec = 36000
 
-    def __init__(self, exp_chef_num: int, new_chef_num: int, exp_cashier_num: int, new_cashier_num: int,raw_material_cost:float):
+    def __init__(self, exp_chef_num: int, new_chef_num: int, exp_cashier_num: int, new_cashier_num: int, raw_material_cost: float):
         """
         An ice-cream shop requires information about
         - number of experienced and non-experienced chefs it has for a day (exp_chef_num, new_chef_num)
         - number of experienced and non-experienced cashiers it has for a day (exp_cashier_num, new_cashier_num)
         - ice-cream price for different sizes S, M and L (price_S, price_M, price_L)
-        - the current amount of raw material to make ice-cream (raw_material_cost). We assume that 1 icecream unit costs $1 of raw material
+        - the current amount of raw material to make ice-cream (raw_material_cost).
+          We assume that 1 small ice-cream costs $1 of raw material, 1 medium ice-cream costs $1.5 of raw material,
+          and 1 large ice-cream costs $2 of raw material based on unit equivalency among different sizes.
         - a check variable whether it has enough raw material (is_enough_raw_material)
         - list of chefs and cashiers it has (chef_list, cashier_list)
         - total number of ice-cream size S, M and L it has sold for the day (total_s_ic, total_m_ic, total_l_ic)
@@ -268,7 +270,7 @@ class Ice_creamShop:
     def update_ic_num(self, s_ic: int, m_ic: int, l_ic: int):
         """Convert ice-cream of different size into ice-cream units
         1 medium ice_cream ~ 1.5 small ice_cream;
-        1 large ice_cream ~ 2 small ice_cream in terms of quantity/raw material
+        1 large ice_cream ~ 2 small ice_cream in terms of unit
         :param s_ic: number of S size ice-cream
         :param m_ic: number of M size ice-cream
         :param l_ic: number of L size ice-cream
@@ -516,11 +518,47 @@ class Queue:
 def has_raw_material(customer: Customer, raw_material_cost: float)->bool:
     """
     check whether the shop has enough raw material for the customer's ice-cream order
+    We assume that 1 small ice-cream unit costs $1 of raw material, 1 medium ice-cream costs $1.5 of raw material,
+    and 1 large ice-cream costs $2 of raw material.
     :param customer: Customer
     :param raw_material_cost: the remaining raw material the shop has currently
     :return: bool
     """
     return customer.s_icecream_num() + customer.m_icecream_num()*1.5 + customer.l_icecream_num()*2 <= raw_material_cost
+
+
+def new_customer(currentSecond: int)->bool:
+    """
+    Randomly generate a customer coming to the ice-cream shop during peak hour and non-peak hour
+    Assume that more customers come from 3PM - 5PM and 7PM - 8:30PM
+    During peak hour, every 240 seconds (4 mins) there is a customer
+    During non-peak hour, every 1200 seconds (20 mins) there is a customer
+    :param currentSecond: the current second after the shop opens
+    :return: whether a customer arrives (True or False)
+    """
+
+    if (10800 < currentSecond < 18000) or (25200 < currentSecond < 30600):
+        num = random.randrange(1, 240)   # peak-hour: customer/240 sec on average
+        if num == 20:
+            return True
+        else:
+            return False
+    else:
+        num = random.randrange(1, 1200)  # non-peak hour: customer/1200 sec on average
+        if num == 800:
+            return True
+        else:
+            return False
+
+
+def seconds_to_hhmmss(second_number: int):
+    """
+    convert the second number to current date time with format HH:MM:SS(AM/PM)
+    Note that time starts at 12pm (12*3600 = 43200) as the shop opens
+    >>> seconds_to_hhmmss(240)
+    '12:04:00PM'
+    """
+    return time.strftime('%H:%M:%S%p', time.gmtime(43200 + second_number))
 
 
 def simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, budget, raw_material_cost, filename="default", timelog=True):
@@ -529,7 +567,7 @@ def simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, bud
     elif exp_cashier_num == new_cashier_num == 0:
         print("Wrong simulation. Shop cannot operate without a cashier!")
     else:
-        icshop = Ice_creamShop(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num,raw_material_cost)
+        icshop = Ice_creamShop(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, raw_material_cost)
         cust_id = 0
         finish_status = False
         last_customer_id = 0
@@ -621,6 +659,7 @@ def simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, bud
                 if timelog and currentSecond == Ice_creamShop.total_sec - 900:
                     print("%s: Shop is closing in 15 minutes, no new orders accepted." % seconds_to_hhmmss(currentSecond))
                     print("Finishing the remaining orders...")
+
                 if (currentSecond >= Ice_creamShop.total_sec and order_q.isEmpty() and prep_q.isEmpty()) or \
                     (icshop.is_enough_raw_material is False and finish_status is True and order_q.isEmpty() and prep_q.isEmpty()):
                     if timelog:
@@ -650,44 +689,10 @@ def simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, bud
                 print("Budget is not enough. Please adjust employee numbers.")
 
 
-def new_customer(currentSecond: int)->bool:
-    """
-    Randomly generate a customer coming to the ice-cream shop during peak hour and non-peak hour
-    Assume that more customers come from 3PM - 5PM and 7PM - 8:30PM
-    During peak hour, every 240 seconds (4 mins) there is a customer
-    During non-peak hour, every 1200 seconds (20 mins) there is a customer
-    :param currentSecond: the current second after the shop opens
-    :return: whether a customer arrives (True or False)
-    """
-
-    if (10800 < currentSecond < 18000) or (25200 < currentSecond < 30600):
-        num = random.randrange(1, 240)   # peak-hour: customer/240 sec on average
-        if num == 20:
-            return True
-        else:
-            return False
-    else:
-        num = random.randrange(1, 1200)  # non-peak hour: customer/1200 sec on average
-        if num == 800:
-            return True
-        else:
-            return False
-
-
-def seconds_to_hhmmss(second_number: int):
-    """
-    convert the second number to current date time with format HH:MM:SS(AM/PM)
-    Note that time starts at 12pm (12*3600 = 43200) as the shop opens
-    >>> seconds_to_hhmmss(240)
-    '12:04:00PM'
-    """
-    return time.strftime('%H:%M:%S%p', time.gmtime(43200 + second_number))
-
-
 if __name__ == '__main__':
     # simulate a situation when there are 2 experienced chef, 1 new chef, 1 experienced cashier in the shop, show time log
     # with budget of 5000$ and raw material cost for 100 icecream units
-    simulation(1, 1, 1, 0, 5000,300, "", True)
+    simulation(1, 1, 1, 0, 5000, 300, "", True)
 
     # uncomment and run below codes to generate "sample.csv" file for data analysis
     # by iterating over number of experienced, non-experienced chefs and experienced, non-experienced cashiers
@@ -699,3 +704,4 @@ if __name__ == '__main__':
     #            for new_cashier_num in range(0, 2):
     #                for i in range(150):
     #                    simulation(exp_chef_num, new_chef_num, exp_cashier_num, new_cashier_num, 100000, 8000, "sample", False)
+
